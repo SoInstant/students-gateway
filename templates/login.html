@@ -1,0 +1,30 @@
+{% extends "template.html" %} {% block title %}Login{% endblock %}{% block
+content %}
+<h1>Log in</h1>
+<form action="/login" method="POST">
+  <div class="mdl-textfield mdl-js-textfield">
+    <input
+      class="mdl-textfield__input"
+      type="text"
+      id="username"
+      name="username"
+    />
+    <label class="mdl-textfield__label" for="username">GOTO Username</label>
+  </div>
+  <br />
+  <div class="mdl-textfield mdl-js-textfield">
+    <input
+      class="mdl-textfield__input"
+      type="password"
+      id="password"
+      name="password"
+    />
+    <label class="mdl-textfield__label" for="password">Password</label>
+  </div>
+  <br />
+  <input
+    type="submit"
+    class="mdl-button mdl-js-button mdl-button--raised mdl-js-ripple-effect mdl-button--accent"
+  />
+</form>
+{% endblock %}

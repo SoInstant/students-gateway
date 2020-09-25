@@ -1,0 +1,86 @@
+{% extends "template.html" %} 
+{% block title %}Home{% endblock %}
+{% block content %}
+<h1>
+  Admin
+  <small>
+    <a href="/logout">log out</a>
+  </small>
+</h1>
+
+<div class="row toolbar">
+  <form action="./admin" method="GET">
+    <div class="mdl-textfield mdl-js-textfield">
+      <input class="mdl-textfield__input" type="text" id="sample1" name="query" value="{% if query %}{{query}}{% endif %}"/>
+      <label class="mdl-textfield__label" for="sample1">Enter to search</label>
+    </div>
+  </form>
+  {% if query %}
+  &nbsp;
+  <a
+    href="/admin"
+    class="mdl-button mdl-js-button mdl-button--raised mdl-js-ripple-effect mdl-button--accent"
+  >
+    Clear search
+  </a>
+  {% else %}
+  &nbsp;
+  <a
+    href="/posts/create"
+    class="mdl-button mdl-js-button mdl-button--raised mdl-js-ripple-effect mdl-button--accent"
+  >
+    <i class="material-icons">add</i>&nbsp;New
+  </a>
+  {% endif %}
+</div>
+
+<!-- Container -->
+<div class="row">
+  {% if posts|length != 0 %}
+    {% for post in posts %}
+    <a href="/posts/view?id={{post["_id"]}}" class="mdl-card mdl-shadow--2dp">
+      <div class="mdl-card__title">
+        <h2 class="mdl-card__title-text" style="font-weight: 500">
+          {{ post["title"] }}
+        </h2>
+      </div>
+      <div class="mdl-card__supporting-text">
+        {{ post["body"] }}
+        <p style="text-align: right">{{post["date_created"]}}</p>
+        <hr />
+        {{post["author_name"]}} <br />{{post["group_name"]}}
+      </div>
+    </a>
+    {% endfor %}
+  {% else %}
+  <p>No results! Try a broader search.</p>
+  {% endif %}
+</div>
+
+{% if page != 1 %}
+<a
+  href="/admin?page={{page-1}}{% if query %}&query={{query}}{% endif %}"
+  class="mdl-button mdl-js-button mdl-button--raised mdl-js-ripple-effect mdl-button--accent"
+>
+  Previous page
+</a>
+{% endif %} Page: {{page}}
+{% if posts|length == 5 %}
+<a
+  href="/admin?page={{page+1}}{% if query %}&query={{query}}{% endif %}"
+  class="mdl-button mdl-js-button mdl-button--raised mdl-js-ripple-effect mdl-button--accent"
+>
+  Next page
+</a>
+{% endif %}
+<ul
+  class="mdl-menu mdl-menu--bottom-right mdl-js-menu mdl-js-ripple-effect"
+  for="demo-menu-lower-right"
+>
+  <li class="mdl-menu__item">Some Action</li>
+  <li class="mdl-menu__item">Another Action</li>
+  <li disabled class="mdl-menu__item">Disabled Action</li>
+  <li class="mdl-menu__item">Yet Another Action</li>
+</ul>
+
+{% endblock %}

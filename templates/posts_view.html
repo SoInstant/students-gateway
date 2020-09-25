@@ -1,0 +1,196 @@
+{% extends "template.html" %}
+{% block title %}Post{% endblock %}
+{% block
+  head %}
+  <script>
+    $(function () {
+      $("#groups").autocomplete({
+        source: "/api/autocomplete?username={{username}}",
+        minLength: 2,
+        // select: function( event, ui ) {
+        //   log( "Selected: " + ui.item.value + " aka " + ui.item.id );
+        // }
+      });
+    });
+  </script>
+  {% endblock %}{% block content %}
+<h1>
+  View post
+  <small>
+    <a href="/admin">back</a>
+  </small>
+</h1>
+
+<div>
+  <!-- Container -->
+  <div class="row">
+    <!-- Form -->
+    <div style="width: 600px">
+      <form class="column" action="/posts/edit?id={{post["_id"]}}" method="POST">
+        <div class="mdl-textfield mdl-js-textfield">
+          <input class="mdl-textfield__input" type="text" id="title"
+          name="title" value="{{post["title"]}}" required disabled />
+          <label class="mdl-textfield__label" for="title">Post title</label>
+        </div>
+        <div class="mdl-textfield mdl-js-textfield">
+          <input class="mdl-textfield__input" type="text" id="groups"
+          name="groups" value="{{post["group_name"]}}" required disabled />
+          <label class="mdl-textfield__label" for="groups"
+            >Groups (separate with a comma)</label
+          >
+        </div>
+        <div class="mdl-textfield mdl-js-textfield">
+          <input
+            class="mdl-textfield__input"
+            type="text"
+            id="location"
+            name="location"
+            value="{{post["location"]}}"
+            disabled
+          />
+          <label class="mdl-textfield__label" for="location"
+            >Location (optional)</label
+          >
+        </div>
+        <label for="date_due">Date due:</label>
+        <input type="date" id="date_due" name="date_due" disabled value="{{post["date_due"]}}"/>
+        <div class="mdl-textfield mdl-js-textfield">
+          <textarea
+            class="mdl-textfield__input"
+            type="text"
+            rows="20"
+            style="width: 600px"
+            id="body"
+            name="body"
+            required
+            disabled
+          >
+{{post["body"]}}
+            </textarea
+          >
+          <label class="mdl-textfield__label" for="body">Post body...</label>
+        </div>
+        <label
+          class="mdl-checkbox mdl-js-checkbox mdl-js-ripple-effect"
+          for="acknowledgement"
+        >
+          <input
+            type="checkbox"
+            id="acknowledgement"
+            class="mdl-checkbox__input"
+            name="acknowledgement"
+            checked
+            disabled
+          />
+          <span class="mdl-checkbox__label">Requires acknowledgement</span>
+        </label>
+        <br />
+        <input
+          id="submit"
+          style="display: none"
+          type="submit"
+          class="mdl-button mdl-js-button mdl-button--raised mdl-js-ripple-effect mdl-button--accent"
+        />
+      </form>
+      <button
+        id="edit"
+        class="mdl-button mdl-js-button mdl-button--raised mdl-js-ripple-effect mdl-button--accent"
+        onclick="edit()"
+      >
+        <i class="material-icons">edit</i>&nbsp;Edit
+      </button>
+      <button
+        id="delete"
+        class="mdl-button mdl-js-button mdl-button--raised mdl-js-ripple-effect mdl-button--accent"
+      >
+        <i class="material-icons">delete</i>&nbsp;Delete
+      </button>
+
+      <button
+        id="download"
+        class="mdl-button mdl-js-button mdl-button--raised mdl-js-ripple-effect mdl-button--accent"
+      >
+        <i class="material-icons">get_app</i>&nbsp;Download responses
+      </button>
+      <ul
+        class="mdl-menu mdl-menu--top-left mdl-js-menu mdl-js-ripple-effect"
+        data-mdl-for="download"
+      >
+        <li class="mdl-menu__item">Excel file (.xlsx)</li>
+        <li class="mdl-menu__item">Comma separated values (.csv)</li>
+      </ul>
+      <br />
+    </div>
+    <!-- Responses -->
+    <div id="responses">
+      <table class="mdl-data-table mdl-js-data-table mdl-shadow--2dp">
+        <thead>
+          <tr>
+            <th class="mdl-data-table__cell--non-numeric">User</th>
+            <th>Viewed</th>
+            <th>Response</th>
+          </tr>
+        </thead>
+        <tbody>
+          {% for user, responses in post["responses"].items() %}
+          <tr>
+            <td class="mdl-data-table__cell--non-numeric">{{user}}</td>
+            <td><i class="material-icons">{% if responses["viewed"] %}check{% else %}close{% endif %}</i></td>
+            <td><i class="material-icons">{% if responses["acknowledged"] %}check{% else %}close{% endif %}</i></td>
+          </tr>
+          {% endfor %}
+          
+        </tbody>
+      </table>
+    </div>
+  </div>
+</div>
+<!-- Dialog -->
+<dialog class="mdl-dialog">
+  <h4 class="mdl-dialog__title">Delete post?</h4>
+  <div class="mdl-dialog__content">
+    <p>
+      Your views and responses will be lost. This action cannot be undone.
+      Continue?
+    </p>
+  </div>
+  <div class="mdl-dialog__actions">
+    <button type="button" class="mdl-button">Delete</button>
+    <button type="button" class="mdl-button close">Cancel</button>
+  </div>
+</dialog>
+
+<script>
+  var dialog = document.querySelector("dialog");
+  var showDialogButton = document.querySelector("#delete");
+  if (!dialog.showModal) {
+    dialogPolyfill.registerDialog(dialog);
+  }
+  showDialogButton.addEventListener("click", function () {
+    dialog.showModal();
+  });
+  dialog.querySelector(".close").addEventListener("click", function () {
+    dialog.close();
+  });
+
+  function edit() {
+    document.getElementById("title").disabled = false;
+    document.getElementById("location").disabled = false;
+    document.getElementById("groups").disabled = false;
+    document.getElementById("body").disabled = false;
+    document.getElementById("date_due").disabled = false;
+    document.getElementById("acknowledgement").disabled = false;
+    document.getElementById("edit").style.display = "none";
+    document.getElementById("download").style.display = "none";
+    document.getElementById("delete").style.display = "none";
+    document.getElementById("submit").style.display = "block";
+    document.getElementById("responses").style.display = "none";
+    var elems = document.querySelectorAll(".is-disabled");
+
+    [].forEach.call(elems, function (el) {
+      el.classList.remove("is-disabled");
+    });
+  }
+</script>
+
+{% endblock %}

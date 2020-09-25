@@ -1,0 +1,91 @@
+{% extends "template.html" %} {% block title %}New post{% endblock %} {% block
+head %}
+<script>
+  $(function () {
+    $("#groups").autocomplete({
+      source: "/api/autocomplete?username={{username}}",
+      minLength: 2,
+      // select: function( event, ui ) {
+      //   log( "Selected: " + ui.item.value + " aka " + ui.item.id );
+      // }
+    });
+  });
+</script>
+{% endblock %} {% block content %}
+<h1>
+  New post
+  <small>
+    <a href="/admin">back</a>
+  </small>
+</h1>
+
+<div>
+  <form class="column" action="/posts/create" method="POST">
+    <div class="mdl-textfield mdl-js-textfield">
+      <input
+        class="mdl-textfield__input"
+        type="text"
+        id="title"
+        name="title"
+        required
+      />
+      <label class="mdl-textfield__label" for="title">Post title</label>
+    </div>
+    <div class="mdl-textfield mdl-js-textfield">
+      <input
+        class="mdl-textfield__input"
+        type="text"
+        id="groups"
+        name="groups"
+        required
+      />
+      <label class="mdl-textfield__label" for="groups"
+        >Groups (separate with a comma)</label
+      >
+    </div>
+    <div class="mdl-textfield mdl-js-textfield">
+      <input
+        class="mdl-textfield__input"
+        type="text"
+        id="location"
+        name="location"
+      />
+      <label class="mdl-textfield__label" for="location"
+        >Location (optional)</label
+      >
+    </div>
+    <label for="date_due">Date due:</label>
+    <input type="date" id="date_due" name="date_due" />
+    <div class="mdl-textfield mdl-js-textfield">
+      <textarea
+        class="mdl-textfield__input"
+        type="text"
+        rows="20"
+        style="width: 600px"
+        id="body"
+        name="body"
+        required
+      ></textarea>
+      <label class="mdl-textfield__label" for="body">Post body...</label>
+    </div>
+    <label
+      class="mdl-checkbox mdl-js-checkbox mdl-js-ripple-effect"
+      for="acknowledgement"
+    >
+      <input
+        type="checkbox"
+        id="acknowledgement"
+        class="mdl-checkbox__input"
+        name="acknowledgement"
+      />
+      <span class="mdl-checkbox__label">Requires acknowledgement</span>
+    </label>
+    <br />
+    <input
+      type="submit"
+      class="mdl-button mdl-js-button mdl-button--raised mdl-js-ripple-effect mdl-button--accent"
+    />
+  </form>
+</div>
+
+{% endblock %}
