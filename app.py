@@ -1,3 +1,7 @@
+import datetime
+from time import time
+
+from bson.json_util import dumps
 from flask import (
     Flask,
     request,
@@ -8,10 +12,8 @@ from flask import (
     url_for,
     flash,
 )
+
 import helper
-import datetime
-from time import time, mktime
-from bson.json_util import dumps
 
 app = Flask(__name__)
 app.secret_key = "asdfjbkl;oghfj"
@@ -49,8 +51,7 @@ def login():
                 session["logged_in"] = request.form["username"]
                 flash("Successfully logged in!", "info")
                 return redirect(url_for("admin"))
-            else:
-                flash("Students: Please use the mobile app!", "error")
+            flash("Students: Please use the mobile app!", "error")
         else:
             flash("Incorrect username/password!", "error")
     return render_template("login.html")
@@ -166,8 +167,7 @@ def authenticate():
                         ),
                         200,
                     )
-                else:
-                    return make_response(
+                return make_response(
                         dumps({"auth": False, "message": "User not authenticated"}),
                         403,
                     )
@@ -188,14 +188,13 @@ def view_posts():
     try:
         page = int(page)
         todo = bool(int(todo))
-    except:
+    except (ValueError, TypeError) as e:
         return "Why are you even trying?"
     if username and page:
         data = helper.get_posts(username, int(page), todo)
         print(f"Time taken: {time() - time_received}")
         return dumps({"data": data})
-    else:
-        return "Please provide all of the arguments required."
+    return "Please provide all of the arguments required."
 
 
 @app.route("/api/autocomplete", methods=["GET"])
@@ -204,8 +203,7 @@ def autocomplete():
     username = request.args.get("username")
     if query_string and username:
         return dumps(helper.get_group_suggestions(username, query_string))
-    else:
-        return "No query string/username provided"
+    return "No query string/username provided"
 
 
 if __name__ == "__main__":
