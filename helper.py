@@ -1,12 +1,14 @@
-import pymongo
-from secrets import token_hex
 import hashlib
-from bson import ObjectId
-from time import time
 from os import environ as env
+from secrets import token_hex
+from time import time
+
+import pymongo
+from bson import ObjectId
 
 client = pymongo.MongoClient(
-    f"mongodb+srv://{env['DB_USERNAME']}:{env['DB_PASSWORD']}@cluster0.g9wex.gcp.mongodb.net/<dbname>?retryWrites=true&w=majority"
+    f"mongodb+srv://{env['DB_USERNAME']}:{env['DB_PASSWORD']}@cluster0.g9wex.gcp.mongodb.net/<dbname>?retryWrites"
+    f"=true&w=majority "
 )
 db = client["students-gateway"]
 
@@ -30,7 +32,7 @@ def authenticate(username, password):
         if generate_hash(password, results["salt"]) == results["password_hash"]:
             return True, results["user_type"]
     else:
-        return False
+        return False, None
 
 
 def groups_with_user(username):
@@ -186,7 +188,8 @@ def get_group_suggestions(username: str, query: str) -> list:
         query: query string
 
     Returns:
-        A list containing dictionaries of suggestions in the form of {'label' : group_name, 'value': group_id}
+        A list containing dictionaries of suggestions in the form of
+        {'label' : group_name, 'value': group_id}
     """
     col = db["groups"]
     suggestions = col.find(
