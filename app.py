@@ -73,7 +73,7 @@ def admin():
         posts = helper.get_posts(session["logged_in"], page, 0)
 
     for post in posts:
-        post["date_created"] = datetime.datetime\
+        post["date_created"] = datetime.datetime \
             .fromtimestamp(int(post["date_created"])).strftime("%Y-%m-%d %H:%M:%S")
         if len(post["body"]) > 100:  # Trim long descriptions
             post["body"] = post["body"][:100] + "..."
@@ -94,7 +94,7 @@ def posts_view():
         flash("Error: No post ID specified!", "error")
         return redirect(url_for("admin"))
     if post["date_due"]:
-        post["date_due"] = datetime.datetime\
+        post["date_due"] = datetime.datetime \
             .fromtimestamp(post["date_due"]).strftime("%Y-%m-%d")
     else:
         post["date_due"] = ""
@@ -158,16 +158,10 @@ def authenticate():
                         ),
                         200,
                     )
-                return make_response(
-                        dumps({"auth": False, "message": "User not authenticated"}),
-                        403,
-                    )
-            else:
-                return make_response(dumps({"message": "Incorrect API key"}), 401)
-        else:
-            return make_response(dumps({"message": "No API key"}), 400)
-    else:
-        return make_response(dumps({"message": "No params provided"}), 400)
+                return make_response(dumps({"auth": False, "message": "User not authenticated"}), 403)
+            return make_response(dumps({"message": "Incorrect API key"}), 401)
+        return make_response(dumps({"message": "No API key"}), 400)
+    return make_response(dumps({"message": "No params provided"}), 400)
 
 
 @app.route("/api/posts/home", methods=["GET"])
