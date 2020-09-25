@@ -1,3 +1,4 @@
+# pylint: disable=C0114,C0116
 import datetime
 from time import time
 
@@ -178,7 +179,7 @@ def view_posts():
     try:
         page = int(page)
         todo = bool(int(todo))
-    except (ValueError, TypeError) as e:
+    except (ValueError, TypeError):
         return "Why are you even trying?"
     if username and page:
         data = helper.get_posts(username, int(page), todo)
