@@ -1,9 +1,11 @@
-# 🎓 Students Gateway - Y3 CEP Final Project
+# 🎓 Students Gateway — Y3 CEP Final Project
+
+Website/API | [App](https://github.com/Ycmelon/students-gateway-app)
 
 ![Python version](https://img.shields.io/badge/python-3.8-006a49.svg)
 ![GitHub licence](https://img.shields.io/github/license/SoInstant/students-gateway?color=006a49)
 
-[📱 App repository](https://github.com/Ycmelon/students-gateway-app)
+Students' Gateway enables teachers to interact with students more conveniently on administrative matters.
 
 ## 📷 Screenshots
 
