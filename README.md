@@ -1,4 +1,4 @@
-# Students Gateway - Y3 CEP Final Project
+# 🎓 Students Gateway - Y3 CEP Final Project
 
 ![Python version](https://img.shields.io/badge/python-3.8-006a49.svg)
 ![GitHub licence](https://img.shields.io/github/license/SoInstant/students-gateway?color=006a49)
