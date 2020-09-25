@@ -45,8 +45,7 @@ def login():
         return redirect(url_for("admin"))
 
     if request.method == "POST":
-        if result := helper.authenticate(request.form["username"],
-                                         request.form["password"]):
+        if result := helper.authenticate(request.form["username"], request.form["password"]):
             if result[1] == "admin":
                 session["logged_in"] = request.form["username"]
                 flash("Successfully logged in!", "info")
@@ -73,8 +72,9 @@ def admin():
         posts = helper.get_posts(session["logged_in"], page, 0)
 
     for post in posts:
-        post["date_created"] = datetime.datetime \
-            .fromtimestamp(int(post["date_created"])).strftime("%Y-%m-%d %H:%M:%S")
+        post["date_created"] = datetime.datetime.fromtimestamp(int(post["date_created"])).strftime(
+            "%Y-%m-%d %H:%M:%S"
+        )
         if len(post["body"]) > 100:  # Trim long descriptions
             post["body"] = post["body"][:100] + "..."
 
@@ -94,8 +94,7 @@ def posts_view():
         flash("Error: No post ID specified!", "error")
         return redirect(url_for("admin"))
     if post["date_due"]:
-        post["date_due"] = datetime.datetime \
-            .fromtimestamp(post["date_due"]).strftime("%Y-%m-%d")
+        post["date_due"] = datetime.datetime.fromtimestamp(post["date_due"]).strftime("%Y-%m-%d")
     else:
         post["date_due"] = ""
     return render_template("posts_view.html", post=post, username=session["logged_in"])
@@ -118,19 +117,22 @@ def posts_create():
 
         # request.form["groups"]
         if request.form["date_due"] != "":
-            date_due = int(datetime.datetime.strptime(
-                request.form["date_due"], "%Y-%m-%d").timestamp())
+            date_due = int(
+                datetime.datetime.strptime(request.form["date_due"], "%Y-%m-%d").timestamp()
+            )
         else:
             date_due = None
-        status = helper.create_post(session["logged_in"], {
-            "title": request.form["title"],
-            "body": request.form["body"],
-            "group_id": request.form["groups"],
-            "requires_acknowledgement": "acknowledgement" in request.form,
-            "location": None if request.form["location"] == ""
-            else request.form["location"],
-            "date_due": date_due
-        })
+        status = helper.create_post(
+            session["logged_in"],
+            {
+                "title": request.form["title"],
+                "body": request.form["body"],
+                "group_id": request.form["groups"],
+                "requires_acknowledgement": "acknowledgement" in request.form,
+                "location": None if request.form["location"] == "" else request.form["location"],
+                "date_due": date_due,
+            },
+        )
         if status[0]:
             flash("Successfully posted!", "info")
         else:
@@ -145,20 +147,17 @@ def authenticate():
     if params:
         if params["key"]:
             if params["key"] == "students-gateway-admin":
-                status = helper.authenticate(
-                    params["username"], params["password"])
+                status = helper.authenticate(params["username"], params["password"])
                 if status:
                     return make_response(
                         dumps(
-                            {
-                                "auth": True,
-                                "user_type": status[1],
-                                "message": "User authenticated",
-                            }
+                            {"auth": True, "user_type": status[1], "message": "User authenticated",}
                         ),
                         200,
                     )
-                return make_response(dumps({"auth": False, "message": "User not authenticated"}), 403)
+                return make_response(
+                    dumps({"auth": False, "message": "User not authenticated"}), 403
+                )
             return make_response(dumps({"message": "Incorrect API key"}), 401)
         return make_response(dumps({"message": "No API key"}), 400)
     return make_response(dumps({"message": "No params provided"}), 400)
