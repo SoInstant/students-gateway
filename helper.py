@@ -375,9 +375,9 @@ def search_for_post(username: str, query: str, page: int) -> list:
     groups = groups_with_user(username)
     return list(
         col.find({"$text": {"$search": query}, "group_id": {"$in": groups}})
-            .sort("date_created", -1)
-            .skip((page - 1) * 5)
-            .limit(5)
+        .sort("date_created", -1)
+        .skip((page - 1) * 5)
+        .limit(5)
     )
 
 
