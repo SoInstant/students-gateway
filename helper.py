@@ -381,5 +381,20 @@ def search_for_post(username: str, query: str, page: int) -> list:
     )
 
 
+def set_expo_push_token(username: str, push_token: str) -> bool:
+    """Sets Expo's push notifications token for given user
+
+    Args:
+        username: A string representing the username of user
+        push_token: User's push token
+
+    Returns:
+       Whether set is successful
+    """
+    col = db["users"]
+    update = col.update_one({"username": username}, {"$set": {"push_token": push_token}})
+    return update.modified_count == 1
+
+
 if __name__ == "__main__":
     pass

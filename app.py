@@ -190,8 +190,10 @@ def groups_edit():
 
 @app.route("/groups/delete", methods=["POST"])
 def groups_delete():
-    # delete post
-    flash("Successfully deleted!", "info")
+    if helper.delete_post(request.args.get("id")):
+        flash("Successfully deleted!", "info")
+    else:
+        flash("An error occured!", "error")
     return redirect(url_for("groups"))
 
 
@@ -205,7 +207,7 @@ def authenticate():
                 if status:
                     return make_response(
                         dumps(
-                            {"auth": True, "user_type": status[1], "message": "User authenticated",}
+                            {"auth": True, "user_type": status[1], "message": "User authenticated"}
                         ),
                         200,
                     )
@@ -215,6 +217,15 @@ def authenticate():
             return make_response(dumps({"message": "Incorrect API key"}), 401)
         return make_response(dumps({"message": "No API key"}), 400)
     return make_response(dumps({"message": "No params provided"}), 400)
+
+
+@app.route("/api/users/setExpoPushToken")
+def api_users_setExpoPushToken():
+    username = request.args.get("username")
+    push_token = request.args.get("token")
+    if helper.set_expo_push_token(username, push_token):
+        return make_response(dumps({"message": "Success"}), 200)
+    return make_response(dumps({"message": "An error occurred"}), 400)
 
 
 @app.route("/api/posts/home", methods=["GET"])
