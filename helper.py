@@ -62,7 +62,7 @@ def add_user_to_group(group_id: str, user_id: str):
     return update.modified_count == 1
 
 
-def authenticate(username, password) -> tuple:
+def authenticate(username, password) -> tuple:  # pylint disable=R1710
     col = db["users"]
     results = col.find_one({"username": username}, {"password_hash": 1, "salt": 1, "user_type": 1})
     if results:
