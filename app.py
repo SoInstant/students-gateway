@@ -74,7 +74,7 @@ def admin():
         posts = helper.get_posts(session["logged_in"], page, 0)
 
     for post in posts:
-        post["date_created"] = datetime.datetime.fromtimestamp(int(post["date_created"])).strftime(
+        post["date_created"] = datetime.datetime.fromtimestamp(int(post["date_created"])+28800).strftime(
             "%Y-%m-%d %H:%M:%S"
         )
         if len(post["body"]) > 100:  # Trim long descriptions
