@@ -1,0 +1,126 @@
+{% extends "template.html" %} {% block title %}New post{% endblock %} {% block
+head %}
+<script>
+  // $(function () {
+  //   $("#groups").autocomplete({
+  //     source: "/api/autocomplete?username={{username}}",
+  //     minLength: 2,
+  //     // select: function( event, ui ) {
+  //     //   log( "Selected: " + ui.item.value + " aka " + ui.item.id );
+  //     // }
+  //   });
+  // });
+  // function dateDueToggle() {
+  //   if (document.getElementById("acknowledgement").checked) {
+  //     document.getElementById("dateDueGroup").style.display = "block";
+  //   } else {
+  //     document.getElementById("dateDueGroup").style.display = "none";
+  //   }
+  // }
+  // document.addEventListener("DOMContentLoaded", function () {
+  //   dateDueToggle();
+  // });
+</script>
+{% endblock %} {% block content %}
+<h1>
+  View group
+  <small>
+    <a href="/groups">back</a>
+  </small>
+</h1>
+
+<div>
+  <form class="column" action="/groups/edit" method="POST">
+    <div class="mdl-textfield mdl-js-textfield">
+      <input
+        class="mdl-textfield__input"
+        type="text"
+        id="name"
+        name="name"
+        required
+        disabled
+        value=""
+      />
+      <label class="mdl-textfield__label" for="title">Group name</label>
+    </div>
+    <div class="mdl-textfield mdl-js-textfield">
+      <textarea
+        class="mdl-textfield__input"
+        type="text"
+        rows="20"
+        style="width: 600px"
+        id="users"
+        name="users"
+        required
+        disabled
+      >
+value
+    </textarea
+      >
+      <label class="mdl-textfield__label" for="body"
+        >Members (GOTO ID, separate by line)</label
+      >
+    </div>
+    <input
+      id="submit"
+      type="submit"
+      style="display: none"
+      class="mdl-button mdl-js-button mdl-button--raised mdl-js-ripple-effect mdl-button--accent"
+    />
+  </form>
+  <button
+    id="edit"
+    class="mdl-button mdl-js-button mdl-button--raised mdl-js-ripple-effect mdl-button--accent"
+    onclick="edit()"
+  >
+    <i class="material-icons">edit</i>&nbsp;Edit
+  </button>
+  <button
+    id="delete"
+    class="mdl-button mdl-js-button mdl-button--raised mdl-js-ripple-effect mdl-button--accent"
+  >
+    <i class="material-icons">delete</i>&nbsp;Delete
+  </button>
+</div>
+
+<dialog class="mdl-dialog">
+  <h4 class="mdl-dialog__title">Delete group?</h4>
+  <div class="mdl-dialog__content">
+    <p>This action cannot be undone. Continue?</p>
+  </div>
+  <div class="mdl-dialog__actions">
+    <form method="POST" action="/groups/delete?id=">
+      <input type="submit" class="mdl-button"value="Delete"></input>
+    </form>
+    <button type="button" class="mdl-button close">Cancel</button>
+  </div>
+</dialog>
+
+<script>
+  var dialog = document.querySelector("dialog");
+  var showDialogButton = document.querySelector("#delete");
+  if (!dialog.showModal) {
+    dialogPolyfill.registerDialog(dialog);
+  }
+  showDialogButton.addEventListener("click", function () {
+    dialog.showModal();
+  });
+  dialog.querySelector(".close").addEventListener("click", function () {
+    dialog.close();
+  });
+
+  function edit() {
+    document.getElementById("name").disabled = false;
+    document.getElementById("users").disabled = false;
+    document.getElementById("edit").style.display = "none";
+    document.getElementById("delete").style.display = "none";
+    document.getElementById("submit").style.display = "block";
+    var elems = document.querySelectorAll(".is-disabled");
+
+    [].forEach.call(elems, function (el) {
+      el.classList.remove("is-disabled");
+    });
+  }
+</script>
+
+{% endblock %}

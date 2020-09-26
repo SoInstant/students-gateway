@@ -1,28 +1,25 @@
 {% extends "template.html" %} {% block title %}New post{% endblock %} {% block
 head %}
 <script>
-    $(function () {
-      $("#groups").autocomplete({
-        source: "/api/autocomplete?username={{username}}",
-        minLength: 2,
-        // select: function( event, ui ) {
-        //   log( "Selected: " + ui.item.value + " aka " + ui.item.id );
-        // }
-      });
+  $(function () {
+    $("#groups").autocomplete({
+      source: "/api/autocomplete?username={{username}}",
+      minLength: 2,
+      // select: function( event, ui ) {
+      //   log( "Selected: " + ui.item.value + " aka " + ui.item.id );
+      // }
     });
-  <<<<<<< HEAD;
-    function dateDueToggle() {
-      if (document.getElementById("acknowledgement").checked) {
-        document.getElementById("dateDueGroup").style.display = "block";
-      } else {
-        document.getElementById("dateDueGroup").style.display = "none";
-      }
+  });
+  function dateDueToggle() {
+    if (document.getElementById("acknowledgement").checked) {
+      document.getElementById("dateDueGroup").style.display = "block";
+    } else {
+      document.getElementById("dateDueGroup").style.display = "none";
     }
-    document.addEventListener("DOMContentLoaded", function () {
-      dateDueToggle();
-    });
-  =======;
-  >>>>>>> f8bfd62110799aa0ec02743c9e397b3e60aa628d
+  }
+  document.addEventListener("DOMContentLoaded", function () {
+    dateDueToggle();
+  });
 </script>
 {% endblock %} {% block content %}
 <h1>

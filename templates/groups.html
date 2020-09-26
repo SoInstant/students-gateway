@@ -1,8 +1,7 @@
-{% extends "template.html" %} 
-{% block title %}Home{% endblock %}
-{% block content %}
+{% extends "template.html" %} {% block title %}Home{% endblock %} {% block
+content %}
 <h1>
-  Admin
+  Groups
   <small>
     <a href="/logout">log out</a>
   </small>
@@ -11,39 +10,42 @@
 <div class="row toolbar">
   <form action="./admin" method="GET">
     <div class="mdl-textfield mdl-js-textfield">
-      <input class="mdl-textfield__input" type="text" id="sample1" name="query" value="{% if query %}{{query}}{% endif %}"/>
+      <input
+        class="mdl-textfield__input"
+        type="text"
+        id="sample1"
+        name="query"
+        value="{% if query %}{{query}}{% endif %}"
+      />
       <label class="mdl-textfield__label" for="sample1">Enter to search</label>
     </div>
   </form>
-  {% if query %}
-  &nbsp;
+  {% if query %} &nbsp;
   <a
     href="/admin"
     class="mdl-button mdl-js-button mdl-button--raised mdl-js-ripple-effect mdl-button--accent"
   >
     Clear search
   </a>
-  {% else %}
-  &nbsp;
+  {% else %} &nbsp;
   <a
-    href="/posts/create"
+    href="/groups/create"
     class="mdl-button mdl-js-button mdl-button--raised mdl-js-ripple-effect mdl-button--accent"
   >
     <i class="material-icons">add</i>&nbsp;New
   </a>
-  {% endif %}
-  &nbsp;
+  {% endif %} &nbsp;
   <a
-    href="/groups"
+    href="/admin"
     class="mdl-button mdl-js-button mdl-button--raised mdl-js-ripple-effect mdl-button--accent"
   >
-    <i class="material-icons">group</i>&nbsp;Manage groups
+    <i class="material-icons">dynamic_feed</i>&nbsp;Manage posts
   </a>
 </div>
 
 <!-- Container -->
 <div class="row">
-  {% if posts|length != 0 %}
+  <!-- {% if posts|length != 0 %}
     {% for post in posts %}
     <a href="/posts/view?id={{post["_id"]}}" class="mdl-card mdl-shadow--2dp">
       <div class="mdl-card__title">
@@ -61,7 +63,7 @@
     {% endfor %}
   {% else %}
   <p>No results! Try a broader search.</p>
-  {% endif %}
+  {% endif %} -->
 </div>
 
 {% if page != 1 %}
@@ -71,8 +73,7 @@
 >
   Previous page
 </a>
-{% endif %} Page: {{page}}
-{% if posts|length == 5 %}
+{% endif %} Page: {{page}} {% if posts|length == 5 %}
 <a
   href="/admin?page={{page+1}}{% if query %}&query={{query}}{% endif %}"
   class="mdl-button mdl-js-button mdl-button--raised mdl-js-ripple-effect mdl-button--accent"

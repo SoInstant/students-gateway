@@ -116,9 +116,10 @@
       <button
         id="delete"
         class="mdl-button mdl-js-button mdl-button--raised mdl-js-ripple-effect mdl-button--accent"
+        
       >
         <i class="material-icons">delete</i>&nbsp;Delete
-      </button>
+    </button>
 
       <button
         id="download"
@@ -169,7 +170,9 @@
     </p>
   </div>
   <div class="mdl-dialog__actions">
-    <button type="button" class="mdl-button">Delete</button>
+  <form method="POST" action="/posts/delete?id={{post["_id"]}}">
+    <input type="submit" class="mdl-button" value="Delete"></input>
+  </form>
     <button type="button" class="mdl-button close">Cancel</button>
   </div>
 </dialog>
