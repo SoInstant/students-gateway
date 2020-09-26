@@ -57,13 +57,14 @@ def create_group(owner_id: list, name: str, members: list):
 
 
 def add_user_to_group(group_id: str, user_id: str):
-    pass
+    col = db["groups"]
+    update = col.update_one({"_id": ObjectId(group_id)}, {"$push": {"members": user_id}})
+    return update.modified_count == 1
 
 
-def authenticate(username, password):
+def authenticate(username, password) -> tuple:
     col = db["users"]
-    results = col.find_one({"username": username},
-                           {"password_hash": 1, "salt": 1, "user_type": 1})
+    results = col.find_one({"username": username}, {"password_hash": 1, "salt": 1, "user_type": 1})
     if results:
         if generate_hash(password, results["salt"]) == results["password_hash"]:
             return True, results["user_type"]
@@ -75,8 +76,7 @@ def groups_with_user(username):
     return [
         ObjectId(group["_id"])
         for group in list(
-            db["groups"].find(
-                {"$or": [{"owner": username}, {"members": username}]}, {"_id": 1})
+            db["groups"].find({"$or": [{"owner": username}, {"members": username}]}, {"_id": 1})
         )
     ]
 
@@ -98,13 +98,11 @@ def get_posts(username, page, todo):
     if todo:
         query["viewed"] = {"$nin": [username]}
     user_posts = list(
-        db["posts"].find(query).sort("date_created", -
-                                     1).skip((page - 1) * 5).limit(5)
+        db["posts"].find(query).sort("date_created", -1).skip((page - 1) * 5).limit(5)
     )
 
     for post in user_posts:
-        author_name = db["users"].find_one(
-            {"username": post["author_id"]})["name"]
+        author_name = db["users"].find_one({"username": post["author_id"]})["name"]
         post["author_name"] = author_name
         group_name = db["groups"].find_one({"_id": post["group_id"]})["name"]
         post["group_name"] = group_name
@@ -128,9 +126,9 @@ def get_post(post_id):
 
     post["author_name"] = db["users"].find_one({"username": post["author_id"]})["name"]
     # post["group_name"] = group["name"]
-    post["acknowledged"] = dict([
-        (entry["username"], entry["response"]) for entry in post["acknowledged"]
-    ])
+    post["acknowledged"] = dict(
+        [(entry["username"], entry["response"]) for entry in post["acknowledged"]]
+    )  # pylint: disable=consider-using-dict-comprehension
 
     group_members = group["members"]
     responses = {}
@@ -176,6 +174,7 @@ def respond_post(username, post_id, response):
         {"_id": ObjectId(post_id), "acknowledged.username": username},
         {"$set": {"acknowledged.$.response": response}},
     )
+    return update.modified_count == 1
 
 
 def create_post(username, data):
@@ -201,8 +200,7 @@ def create_post(username, data):
         "date_due",
     }
     if compulsory_keys.issubset(set(data.keys())):
-        group_exists = len(list(db["groups"].find(
-            {"_id": ObjectId(data["group_id"])})))
+        group_exists = len(list(db["groups"].find({"_id": ObjectId(data["group_id"])})))
         if group_exists:
             date = round(time())
             data["date_created"] = int(date)
@@ -246,8 +244,7 @@ def get_group_suggestions(username: str, query: str) -> list:
         {'label' : group_name, 'value': group_id}
     """
     col = db["groups"]
-    suggestions = col.find({"$text": {"$search": query}, "owner": username},
-                           {"_id": 1, "name": 1})
+    suggestions = col.find({"$text": {"$search": query}, "owner": username}, {"_id": 1, "name": 1})
     return [{"label": group["name"], "value": str(group["_id"])} for group in suggestions]
 
 
@@ -266,9 +263,9 @@ def search_for_post(username: str, query: str, page: int) -> list:
     groups = groups_with_user(username)
     return list(
         col.find({"$text": {"$search": query}, "group_id": {"$in": groups}})
-            .sort("date_created", -1)
-            .skip((page - 1) * 5)
-            .limit(5)
+        .sort("date_created", -1)
+        .skip((page - 1) * 5)
+        .limit(5)
     )
 
 

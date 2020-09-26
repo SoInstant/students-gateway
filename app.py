@@ -75,7 +75,8 @@ def admin():
 
     for post in posts:
         post["date_created"] = datetime.datetime.fromtimestamp(
-            int(post["date_created"])+28800).strftime("%Y-%m-%d %H:%M:%S")
+            int(post["date_created"]) + 28800
+        ).strftime("%Y-%m-%d %H:%M:%S")
         if len(post["body"]) > 100:  # Trim long descriptions
             post["body"] = post["body"][:100] + "..."
 
@@ -95,8 +96,7 @@ def posts_view():
         flash("Error: No post ID specified!", "error")
         return redirect(url_for("admin"))
     if post["date_due"]:
-        post["date_due"] = datetime.datetime.fromtimestamp(
-            post["date_due"]).strftime("%Y-%m-%d")
+        post["date_due"] = datetime.datetime.fromtimestamp(post["date_due"]).strftime("%Y-%m-%d")
     else:
         post["date_due"] = ""
     return render_template("posts_view.html", post=post, username=session["logged_in"])
@@ -128,8 +128,7 @@ def posts_create():
         # request.form["groups"]
         if request.form["date_due"] != "":
             date_due = int(
-                datetime.datetime.strptime(
-                    request.form["date_due"], "%Y-%m-%d").timestamp()
+                datetime.datetime.strptime(request.form["date_due"], "%Y-%m-%d").timestamp()
             )
         else:
             date_due = None
@@ -190,13 +189,11 @@ def authenticate():
     if params:
         if params["key"]:
             if params["key"] == "students-gateway-admin":
-                status = helper.authenticate(
-                    params["username"], params["password"])
+                status = helper.authenticate(params["username"], params["password"])
                 if status:
                     return make_response(
                         dumps(
-                            {"auth": True,
-                             "user_type": status[1], "message": "User authenticated", }
+                            {"auth": True, "user_type": status[1], "message": "User authenticated",}
                         ),
                         200,
                     )
