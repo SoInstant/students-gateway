@@ -46,13 +46,15 @@ def login():
 
     if request.method == "POST":
         if result := helper.authenticate(request.form["username"], request.form["password"]):
-            if result[1] == "admin":
-                session["logged_in"] = request.form["username"]
-                flash("Successfully logged in!", "info")
-                return redirect(url_for("admin"))
-            flash("Students: Please use the mobile app!", "error")
-        else:
-            flash("Incorrect username/password!", "error")
+            if result[0]:  # Successful
+                if result[1] == "admin":
+                    session["logged_in"] = request.form["username"]
+                    flash("Successfully logged in!", "info")
+                    return redirect(url_for("admin"))
+                print(result[1])
+                flash("Students: Please use the mobile app!", "error")
+            else:
+                flash("Incorrect username/password!", "error")
     return render_template("login.html")
 
 
@@ -94,7 +96,8 @@ def posts_view():
         flash("Error: No post ID specified!", "error")
         return redirect(url_for("admin"))
     if post["date_due"]:
-        post["date_due"] = datetime.datetime.fromtimestamp(post["date_due"]).strftime("%Y-%m-%d")
+        post["date_due"] = datetime.datetime.fromtimestamp(
+            post["date_due"]).strftime("%Y-%m-%d")
     else:
         post["date_due"] = ""
     return render_template("posts_view.html", post=post, username=session["logged_in"])
@@ -108,6 +111,14 @@ def posts_edit():
     return redirect(url_for("posts_view", id=request.args.get("id")))
 
 
+@app.route("/posts/delete", methods=["POST"])
+def posts_delete():
+    # request.form...
+    # if success
+    flash("Successfully deleted!", "info")
+    return redirect(url_for("admin"))
+
+
 @app.route("/posts/create", methods=["GET", "POST"])
 def posts_create():
     if request.method == "POST":
@@ -118,7 +129,8 @@ def posts_create():
         # request.form["groups"]
         if request.form["date_due"] != "":
             date_due = int(
-                datetime.datetime.strptime(request.form["date_due"], "%Y-%m-%d").timestamp()
+                datetime.datetime.strptime(
+                    request.form["date_due"], "%Y-%m-%d").timestamp()
             )
         else:
             date_due = None
@@ -141,17 +153,51 @@ def posts_create():
     return render_template("posts_create.html", username=session["logged_in"])
 
 
+@app.route("/groups")
+def groups():
+    return render_template("groups.html", page=1)
+
+
+@app.route("/groups/view")
+def groups_view():
+    return render_template("groups_view.html")
+
+
+@app.route("/groups/create", methods=["GET", "POST"])
+def groups_create():
+    if request.method == "POST":
+        # create
+        flash("Successfully created!", "info")
+        return redirect(url_for("groups"))
+    return render_template("groups_create.html")
+
+
+@app.route("/groups/edit", methods=["POST"])
+def groups_edit():
+    flash("Successfully edited!", "info")
+    return redirect(url_for("groups_view"))
+
+
+@app.route("/groups/delete", methods=["POST"])
+def groups_delete():
+    # delete post
+    flash("Successfully deleted!", "info")
+    return redirect(url_for("groups"))
+
+
 @app.route("/api/auth/", methods=["POST"])
 def authenticate():
     params = request.json
     if params:
         if params["key"]:
             if params["key"] == "students-gateway-admin":
-                status = helper.authenticate(params["username"], params["password"])
+                status = helper.authenticate(
+                    params["username"], params["password"])
                 if status:
                     return make_response(
                         dumps(
-                            {"auth": True, "user_type": status[1], "message": "User authenticated",}
+                            {"auth": True,
+                                "user_type": status[1], "message": "User authenticated", }
                         ),
                         200,
                     )
