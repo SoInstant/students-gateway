@@ -96,7 +96,8 @@ def posts_view():
         flash("Error: No post ID specified!", "error")
         return redirect(url_for("admin"))
     if post["date_due"]:
-        post["date_due"] = datetime.datetime.fromtimestamp(post["date_due"]).strftime("%Y-%m-%d")
+        post["date_due"] = datetime.datetime.fromtimestamp(
+            post["date_due"]).strftime("%Y-%m-%d")
     else:
         post["date_due"] = ""
     return render_template("posts_view.html", post=post, username=session["logged_in"])
@@ -128,7 +129,8 @@ def posts_create():
         # request.form["groups"]
         if request.form["date_due"] != "":
             date_due = int(
-                datetime.datetime.strptime(request.form["date_due"], "%Y-%m-%d").timestamp()
+                datetime.datetime.strptime(
+                    request.form["date_due"], "%Y-%m-%d").timestamp()
             )
         else:
             date_due = None
@@ -153,21 +155,33 @@ def posts_create():
 
 @app.route("/groups")
 def groups():
-    return render_template("groups.html", page=1)
+    groups = helper.groups_with_user(session["logged_in"])
+    return render_template("groups.html", groups=groups)
 
 
 @app.route("/groups/view")
 def groups_view():
-    return render_template("groups_view.html")
+    return render_template("groups_view.html", you=session["logged_in"])
 
 
 @app.route("/groups/create", methods=["GET", "POST"])
 def groups_create():
     if request.method == "POST":
-        # create
-        flash("Successfully created!", "info")
-        return redirect(url_for("groups"))
-    return render_template("groups_create.html")
+        if not check_authentication():
+            flash("You were logged out, try again!", "error")
+            return redirect(url_for("login"))
+
+        owners = [owner.strip()
+                  for owner in request.form["owners"].splitlines()]
+        members = [member.strip()
+                   for member in request.form["members"].splitlines()]
+
+        if helper.create_group(owners, request.form["name"], members):
+            flash("Successfully created!", "info")
+        else:
+            flash("An error occured!", "error")
+        return redirect(url_for("groups_view"))
+    return render_template("groups_create.html", you=session["logged_in"])
 
 
 @app.route("/groups/edit", methods=["POST"])
@@ -189,11 +203,13 @@ def authenticate():
     if params:
         if params["key"]:
             if params["key"] == "students-gateway-admin":
-                status = helper.authenticate(params["username"], params["password"])
+                status = helper.authenticate(
+                    params["username"], params["password"])
                 if status:
                     return make_response(
                         dumps(
-                            {"auth": True, "user_type": status[1], "message": "User authenticated",}
+                            {"auth": True,
+                                "user_type": status[1], "message": "User authenticated", }
                         ),
                         200,
                     )
@@ -206,7 +222,7 @@ def authenticate():
 
 
 @app.route("/api/posts/home", methods=["GET"])
-def view_posts():
+def api_posts_home():
     time_received = time()
     username = request.args.get("username")
     page = request.args.get("page")
@@ -221,6 +237,30 @@ def view_posts():
         print(f"Time taken: {time() - time_received}")
         return dumps({"data": data})
     return "Please provide all of the arguments required."
+
+
+@app.route("/api/posts/read")
+def api_posts_read():
+    username = request.args.get("username")
+    post_id = request.args.get("id")
+    if username == None or post_id == None:
+        return make_response(dumps({"message": "Missing parameters"}), 400)
+    if helper.view_post(username, post_id):
+        return make_response(dumps({"message": "Success"}), 200)
+    return make_response(dumps({"message": "An error occured"}), 400)
+
+
+@app.route("/api/posts/respond")
+def api_posts_respond():
+    username = request.args.get("username")
+    post_id = request.args.get("id")
+    response = request.args.get("response")
+    if username == None or post_id == None or response == None:
+        return make_response(dumps({"message": "Missing parameters"}), 400)
+    response = True if response == "true" else False
+    if helper.respond_post(username, post_id, response):
+        return make_response(dumps({"message": "Success"}), 200)
+    return make_response(dumps({"message": "An error occured"}), 400)
 
 
 @app.route("/api/autocomplete", methods=["GET"])

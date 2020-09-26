@@ -45,6 +45,35 @@ content %}
 
 <!-- Container -->
 <div class="row">
+  <div id="groups">
+    <table class="mdl-data-table mdl-js-data-table mdl-shadow--2dp">
+      <thead>
+        <tr>
+          <th class="mdl-data-table__cell--non-numeric">Name</th>
+          <th>Owners</th>
+          <th>Members</th>
+        </tr>
+      </thead>
+      <tbody>
+        <!-- {% for user, responses in post["responses"].items() %}
+        <tr>
+          <td class="mdl-data-table__cell--non-numeric">{{user}}</td>
+          <td>
+            <i class="material-icons"
+              >{% if responses["viewed"] %}check{% else %}close{% endif %}</i
+            >
+          </td>
+          <td>
+            {% if responses["viewed"] %}<i class="material-icons"
+              >{% if responses["acknowledged"] %}check{% else %}close{% endif
+              %}</i
+            >{% endif %}
+          </td>
+        </tr>
+        {% endfor %} -->
+      </tbody>
+    </table>
+  </div>
   <!-- {% if posts|length != 0 %}
     {% for post in posts %}
     <a href="/posts/view?id={{post["_id"]}}" class="mdl-card mdl-shadow--2dp">
@@ -65,30 +94,4 @@ content %}
   <p>No results! Try a broader search.</p>
   {% endif %} -->
 </div>
-
-{% if page != 1 %}
-<a
-  href="/admin?page={{page-1}}{% if query %}&query={{query}}{% endif %}"
-  class="mdl-button mdl-js-button mdl-button--raised mdl-js-ripple-effect mdl-button--accent"
->
-  Previous page
-</a>
-{% endif %} Page: {{page}} {% if posts|length == 5 %}
-<a
-  href="/admin?page={{page+1}}{% if query %}&query={{query}}{% endif %}"
-  class="mdl-button mdl-js-button mdl-button--raised mdl-js-ripple-effect mdl-button--accent"
->
-  Next page
-</a>
-{% endif %}
-<ul
-  class="mdl-menu mdl-menu--bottom-right mdl-js-menu mdl-js-ripple-effect"
-  for="demo-menu-lower-right"
->
-  <li class="mdl-menu__item">Some Action</li>
-  <li class="mdl-menu__item">Another Action</li>
-  <li disabled class="mdl-menu__item">Disabled Action</li>
-  <li class="mdl-menu__item">Yet Another Action</li>
-</ul>
-
 {% endblock %}

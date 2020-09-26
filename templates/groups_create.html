@@ -45,10 +45,26 @@ head %}
       <textarea
         class="mdl-textfield__input"
         type="text"
+        rows="3"
+        style="width: 600px"
+        id="owners"
+        name="owners"
+        required
+      >
+{{you}}</textarea
+      >
+      <label class="mdl-textfield__label" for="body"
+        >Owners (GOTO ID, separate by line)</label
+      >
+    </div>
+    <div class="mdl-textfield mdl-js-textfield">
+      <textarea
+        class="mdl-textfield__input"
+        type="text"
         rows="20"
         style="width: 600px"
-        id="body"
-        name="body"
+        id="members"
+        name="members"
         required
       ></textarea>
       <label class="mdl-textfield__label" for="body"
@@ -61,5 +77,4 @@ head %}
     />
   </form>
 </div>
-
 {% endblock %}
