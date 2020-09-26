@@ -1,14 +1,24 @@
 # pylint: disable=C0114,C0116
 import hashlib
-from os import environ as env
+import os
 from secrets import token_hex
 from time import time
 
 import pymongo
 from bson import ObjectId
 
+if os.path.isfile(".env"):
+    from dotenv import load_dotenv
+
+    load_dotenv(verbose=True)
+    db_username = os.getenv("DB_USERNAME")
+    db_password = os.getenv("DB_PASSWORD")
+else:
+    db_username = os.environ["DB_USERNAME"]
+    db_password = os.environ["DB_PASSWORD"]
+
 client = pymongo.MongoClient(
-    f"mongodb+srv://{env['DB_USERNAME']}:{env['DB_PASSWORD']}@cluster0.g9wex.gcp.mongodb.net/"
+    f"mongodb+srv://{db_username}:{db_password}@cluster0.g9wex.gcp.mongodb.net/"
     f"<dbname>?retryWrites=true&w=majority"
 )
 db = client["students-gateway"]
@@ -24,6 +34,32 @@ def generate_hash(password, salt):
     return hashlib.sha256(string.encode()).hexdigest()
 
 
+def create_user(username, name, password, user_type):
+    col = db["users"]
+    salt = generate_salt()
+    password_hash = generate_hash(password, salt)
+    insert = col.insert_one(
+        {
+            "username": username,
+            "name": name,
+            "salt": salt,
+            "password_hash": password_hash,
+            "user_type": user_type,
+        }
+    )
+    return insert.acknowledged
+
+
+def create_group(owner_id: list, name: str, members: list):
+    col = db["groups"]
+    insert = col.insert_one({"name": name, "owner": owner_id, "members": members})
+    return insert.acknowledged
+
+
+def add_user_to_group(group_id: str, user_id: str):
+    pass
+
+
 def authenticate(username, password):
     col = db["users"]
     results = col.find_one({"username": username},
@@ -31,7 +67,8 @@ def authenticate(username, password):
     if results:
         if generate_hash(password, results["salt"]) == results["password_hash"]:
             return True, results["user_type"]
-    return False, None
+    else:
+        return False, ""
 
 
 def groups_with_user(username):
@@ -89,20 +126,26 @@ def get_post(post_id):
     post = db["posts"].find_one({"_id": ObjectId(post_id)})
     group = db["groups"].find_one({"_id": post["group_id"]})
 
-    post["author_name"] = db["users"].find_one(
-        {"username": post["author_id"]})["name"]
-    post["group_name"] = group["name"]
+    post["author_name"] = db["users"].find_one({"username": post["author_id"]})["name"]
+    # post["group_name"] = group["name"]
+    post["acknowledged"] = dict([
+        (entry["username"], entry["response"]) for entry in post["acknowledged"]
+    ])
 
     group_members = group["members"]
     responses = {}
     for member in group_members:
+        try:
+            response = post["acknowledged"][member]
+        except KeyError:
+            response = None
         responses[member] = {
             "viewed": member in post["viewed"],
-            "acknowledged": member in post["acknowledged"],
+            "acknowledged": response,
         }
     post["responses"] = responses
 
-    del post["author_id"], post["group_id"], post["viewed"], post["acknowledged"]
+    del post["author_id"], post["viewed"], post["acknowledged"]  # , post["group_id"]
     return post
 
 
@@ -114,12 +157,25 @@ def view_post(username, post_id):
         post_id (str): post id of the post to be read
 
     Returns:
-        A boolean value indicating if the read was successful
+        A boolean value indicating if setting the post to read was successful
     """
+    col = db["posts"]
+    update = col.update_one({"_id": ObjectId(post_id)}, {"$addToSet": {"viewed": username}})
+    if update.modified_count:
+        col.update_one(
+            {"_id": ObjectId(post_id)},
+            {"$addToSet": {"acknowledged": {"username": username, "response": None}}},
+        )
+    return update.modified_count == 1
 
 
 def respond_post(username, post_id, response):
     """Indicate the response by a user to a post"""
+    col = db["posts"]
+    update = col.update_one(
+        {"_id": ObjectId(post_id), "acknowledged.username": username},
+        {"$set": {"acknowledged.$.response": response}},
+    )
 
 
 def create_post(username, data):
@@ -156,15 +212,14 @@ def create_post(username, data):
             data["acknowledged"] = []
             try:
                 insert = db["posts"].insert_one(data)
-                return (insert.acknowledged, "Post created successfully")
+                return insert.acknowledged, "Post created successfully"
             except pymongo.errors.WriteError:
-                return (False, "Post was not created successfully")
+                return False, "Post was not created successfully"
         else:
-            return (False, "group_id is invalid")
+            return False, "group_id is invalid"
     else:
-        absent_keys = [
-            key for key in compulsory_keys if key not in data.keys()]
-        return (False, f"Missing keys: {', '.join(absent_keys)}")
+        absent_keys = [key for key in compulsory_keys if key not in data.keys()]
+        return False, f"Missing keys: {', '.join(absent_keys)}"
 
 
 def update_post():
@@ -211,32 +266,11 @@ def search_for_post(username: str, query: str, page: int) -> list:
     groups = groups_with_user(username)
     return list(
         col.find({"$text": {"$search": query}, "group_id": {"$in": groups}})
-        .sort("date_created", -1)
-        .skip((page - 1) * 5)
-        .limit(5)
+            .sort("date_created", -1)
+            .skip((page - 1) * 5)
+            .limit(5)
     )
 
 
 if __name__ == "__main__":
-    # salt = generate_salt()
-    # print(salt)
-    # print(generate_hash("passwd", salt))
-
-    # a = create_post(
-    #     "",
-    #     {
-    #         "title": "",
-    #         "body": "",
-    #         "group_id": "",
-    #     },
-    # )
-    # print(a)
-
-    # Demonstrate admin
-    # print(f"Admin posts: {get_posts('bokai.wu',3,0)}")
-
-    # Demonstrate user
-    # print(f"User posts: {get_posts('23ychij199g',3,1)}")
-
-    # print(get_post("5f64d4b9ce2728e80c253488"))
     pass
