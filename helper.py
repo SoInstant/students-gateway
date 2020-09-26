@@ -154,10 +154,10 @@ def groups_with_user(username: str) -> list:
     Returns:
         A list containing information of groups that user is in
     """
-    groups =list(db["groups"].find({"$or": [{"owners": username}, {"members": username}]}))
+    groups = list(db["groups"].find({"$or": [{"owners": username}, {"members": username}]}))
     for group in groups:
         group["_id"] = ObjectId(group["_id"])
-    return group
+    return groups
 
 
 # Post functions
@@ -413,4 +413,4 @@ def set_expo_push_token(username: str, push_token: str) -> bool:
 
 
 if __name__ == "__main__":
-    pass
+    print([group["_id"] for group in groups_with_user("23ychij199g")])
