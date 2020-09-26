@@ -9,7 +9,7 @@ from bson import ObjectId
 
 client = pymongo.MongoClient(
     f"mongodb+srv://{env['DB_USERNAME']}:{env['DB_PASSWORD']}@cluster0.g9wex.gcp.mongodb.net/"
-    f"<dbname>?retryWrites=true&w=majority "
+    f"<dbname>?retryWrites=true&w=majority"
 )
 db = client["students-gateway"]
 
