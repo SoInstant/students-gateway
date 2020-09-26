@@ -52,7 +52,7 @@ def create_user(username, name, password, user_type):
 
 def create_group(owner_id: list, name: str, members: list):
     col = db["groups"]
-    insert = col.insert_one({"name": name, "owner": owner_id, "members": members})
+    insert = col.insert_one({"name": name, "owners": owner_id, "members": members})
     return insert.acknowledged
 
 
@@ -62,51 +62,62 @@ def add_user_to_group(group_id: str, user_id: str):
     return update.modified_count == 1
 
 
-def authenticate(username, password) -> tuple:  # pylint: disable=R1710
+def authenticate(username, password) -> tuple:
     col = db["users"]
     results = col.find_one({"username": username}, {"password_hash": 1, "salt": 1, "user_type": 1})
     if results:
         if generate_hash(password, results["salt"]) == results["password_hash"]:
             return True, results["user_type"]
-    else:
-        return False, ""
+    return False, ""
 
 
-def groups_with_user(username):
+def groups_with_user(username: str) -> list:
+    """Finds group(s) with user in it/them
+
+    Args:
+        username: username of user
+
+    Returns:
+        A list containing ObjectId objects which contain the group_id of the groups the user is in
+    """
     return [
         ObjectId(group["_id"])
         for group in list(
-            db["groups"].find({"$or": [{"owner": username}, {"members": username}]}, {"_id": 1})
+            db["groups"].find({"$or": [{"owners": username}, {"members": username}]}, {"_id": 1})
         )
     ]
 
 
 # Post functions
-def get_posts(username, page, todo):
+def get_posts(username: str, page: int, todo: int) -> list:
     """Gets the posts of a user, by page
 
     Args:
-        username (str): username of user
-        page (int): page of posts (each page has 5 posts)
-        todo (int): 1 to filter by viewed = True, 0 to avoid filter
+        username: username of user
+        page: page of posts (each page has 5 posts)
+        todo: 1 to filter by viewed = True, 0 to avoid filter
 
     Returns:
         A list containing dictionary objects that represent a post
     """
     groups = groups_with_user(username)
+
     query = {"group_id": {"$in": groups}}
     if todo:
         query["viewed"] = {"$nin": [username]}
+
     user_posts = list(
         db["posts"].find(query).sort("date_created", -1).skip((page - 1) * 5).limit(5)
     )
 
     for post in user_posts:
         author_name = db["users"].find_one({"username": post["author_id"]})["name"]
-        post["author_name"] = author_name
         group_name = db["groups"].find_one({"_id": post["group_id"]})["name"]
+
+        post["author_name"] = author_name
         post["group_name"] = group_name
         post["viewed"] = username in post["viewed"]
+
         del post["author_id"], post["group_id"]
     return user_posts
 
@@ -244,7 +255,7 @@ def get_group_suggestions(username: str, query: str) -> list:
         {'label' : group_name, 'value': group_id}
     """
     col = db["groups"]
-    suggestions = col.find({"$text": {"$search": query}, "owner": username}, {"_id": 1, "name": 1})
+    suggestions = col.find({"$text": {"$search": query}, "owners": username}, {"_id": 1, "name": 1})
     return [{"label": group["name"], "value": str(group["_id"])} for group in suggestions]
 
 
