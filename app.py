@@ -110,7 +110,7 @@ def posts_edit():
     return redirect(url_for("posts_view", id=request.args.get("id")))
 
 
-@app.route("/posts/delete")
+@app.route("/posts/delete", methods=["POST"])
 def posts_delete():
     deletion = helper.delete_post(request.args.get("id"))
     if deletion:
