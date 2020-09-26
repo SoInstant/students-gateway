@@ -47,16 +47,31 @@ head %}
       <textarea
         class="mdl-textfield__input"
         type="text"
-        rows="20"
+        rows="3"
         style="width: 600px"
-        id="users"
-        name="users"
+        id="owners"
+        name="owners"
         required
         disabled
       >
 value
-    </textarea
+    </textarea>
+      <label class="mdl-textfield__label" for="body"
+        >Owners (GOTO ID, separate by line)</label
       >
+    </div>
+    <div class="mdl-textfield mdl-js-textfield">
+      <textarea
+        class="mdl-textfield__input"
+        type="text"
+        rows="20"
+        style="width: 600px"
+        id="members"
+        name="members"
+        required
+        disabled
+      >
+value</textarea>
       <label class="mdl-textfield__label" for="body"
         >Members (GOTO ID, separate by line)</label
       >
@@ -112,6 +127,7 @@ value
   function edit() {
     document.getElementById("name").disabled = false;
     document.getElementById("users").disabled = false;
+    document.getElementById("owners").disabled = false;
     document.getElementById("edit").style.display = "none";
     document.getElementById("delete").style.display = "none";
     document.getElementById("submit").style.display = "block";

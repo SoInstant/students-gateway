@@ -117,6 +117,11 @@ def get_posts(username: str, page: int, todo: int) -> list:
         post["author_name"] = author_name
         post["group_name"] = group_name
         post["viewed"] = username in post["viewed"]
+        response = None
+        for response_ in post["acknowledged"]:
+            if response_["username"] == username:
+                response = response_["response"]
+        post["acknowledged"] = response
 
         del post["author_id"], post["group_id"]
     return user_posts
