@@ -4,3 +4,5 @@ pymongo
 dnspython
 python-dotenv
 requests
+pandas
+xlsxwriter

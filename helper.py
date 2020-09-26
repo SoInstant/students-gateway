@@ -11,6 +11,7 @@ from time import time
 
 import pymongo
 from bson import ObjectId
+import pandas
 
 if os.path.isfile(".env"):  # for local testing
     from dotenv import load_dotenv
@@ -340,8 +341,25 @@ def delete_post(post_id: str) -> bool:
 
 def download_posts(post_id):
     """Download the responses to a post"""
-    # TODO
-    return post_id
+    post = db["posts"].find_one({"_id": ObjectId(post_id)})
+    group = db["groups"].find_one({"_id": post["group_id"]})
+
+    post["acknowledged"] = dict(
+        [(entry["username"], entry["response"]) for entry in post["acknowledged"]]
+    )
+
+    group_members = group["members"]
+    responses = []
+    for member in group_members:
+        try:
+            if post["acknowledged"][member]:
+                response = int(post["acknowledged"][member])
+            else:
+                response = ""
+        except KeyError:
+            response = ""
+        responses.append((member, int(member in post["viewed"]), response))
+    return pandas.DataFrame.from_records(responses, columns=["username", "viewed", "response"])
 
 
 def get_group_suggestions(username: str, query: str) -> list:
@@ -375,9 +393,9 @@ def search_for_post(username: str, query: str, page: int) -> list:
     groups = groups_with_user(username)
     return list(
         col.find({"$text": {"$search": query}, "group_id": {"$in": groups}})
-        .sort("date_created", -1)
-        .skip((page - 1) * 5)
-        .limit(5)
+            .sort("date_created", -1)
+            .skip((page - 1) * 5)
+            .limit(5)
     )
 
 
@@ -397,4 +415,6 @@ def set_expo_push_token(username: str, push_token: str) -> bool:
 
 
 if __name__ == "__main__":
+    stuff = download_posts("5f64d4b9ce2728e80c253488")
+    print(stuff)
     pass
