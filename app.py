@@ -1,4 +1,4 @@
-# pylint: disable=C0114,C0116
+# pylint: disable=disable=missing-module-docstring,missing-function-docstring
 import datetime
 from time import time
 

@@ -1,4 +1,4 @@
-# pylint: disable=C0114,C0116
+# pylint: disable=missing-module-docstring,missing-function-docstring,consider-using-dict-comprehension
 import hashlib
 import os
 from secrets import token_hex
@@ -128,7 +128,7 @@ def get_post(post_id):
     # post["group_name"] = group["name"]
     post["acknowledged"] = dict(
         [(entry["username"], entry["response"]) for entry in post["acknowledged"]]
-    )  # pylint: disable=consider-using-dict-comprehension
+    )
 
     group_members = group["members"]
     responses = {}
