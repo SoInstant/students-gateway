@@ -1,4 +1,9 @@
-# pylint: disable=missing-module-docstring,missing-function-docstring,consider-using-dict-comprehension
+# pylint: disable=missing-module-docstring,consider-using-dict-comprehension,fixme
+"""Helper functions for app.py
+
+This module provides authentication, posts-related, groups-related, user-related and miscellaneous
+functions for app.py.
+"""
 import hashlib
 import os
 from secrets import token_hex
@@ -7,7 +12,7 @@ from time import time
 import pymongo
 from bson import ObjectId
 
-if os.path.isfile(".env"):
+if os.path.isfile(".env"):  # for local testing
     from dotenv import load_dotenv
 
     load_dotenv(verbose=True)
@@ -196,7 +201,7 @@ def get_posts(username: str, page: int, todo: int) -> list:
     return user_posts
 
 
-def get_post(post_id:str)-> dict:
+def get_post(post_id: str) -> dict:
     """Get a singular post, by id
 
     Args:
@@ -232,7 +237,7 @@ def get_post(post_id:str)-> dict:
     return post
 
 
-def view_post(username:str, post_id:str)->bool:
+def view_post(username: str, post_id: str) -> bool:
     """Sets the status of a post to read
 
     Args:
@@ -252,7 +257,7 @@ def view_post(username:str, post_id:str)->bool:
     return update.modified_count == 1
 
 
-def respond_post(username:str, post_id:str, response: bool):
+def respond_post(username: str, post_id: str, response: bool):
     """Indicate the response by a user to a post
 
     Args:
@@ -271,7 +276,7 @@ def respond_post(username:str, post_id:str, response: bool):
     return update.modified_count == 1
 
 
-def create_post(username: str, data: dict)->tuple:
+def create_post(username: str, data: dict) -> tuple:
     """Creates a post
 
     Args:
@@ -318,9 +323,11 @@ def update_post():
     """Updates a post made by an admin"""
     # TODO
 
+
 def delete_post():
     """Updates a post made by an admin"""
     # TODO
+
 
 def download_posts():
     # TODO

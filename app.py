@@ -153,8 +153,8 @@ def posts_create():
 
 @app.route("/groups")
 def groups():
-    groups = helper.groups_with_user(session["logged_in"])
-    return render_template("groups.html", groups=groups)
+    groups_with_user = helper.groups_with_user(session["logged_in"])
+    return render_template("groups.html", groups=groups_with_user)
 
 
 @app.route("/groups/view")
@@ -237,11 +237,11 @@ def api_posts_home():
 def api_posts_view():
     username = request.args.get("username")
     post_id = request.args.get("id")
-    if username == None or post_id == None:
+    if username is None or post_id is None:
         return make_response(dumps({"message": "Missing parameters"}), 400)
     if helper.view_post(username, post_id):
         return make_response(dumps({"message": "Success"}), 200)
-    return make_response(dumps({"message": "An error occured"}), 400)
+    return make_response(dumps({"message": "An error occurred"}), 400)
 
 
 @app.route("/api/posts/respond")
@@ -249,12 +249,12 @@ def api_posts_respond():
     username = request.args.get("username")
     post_id = request.args.get("id")
     response = request.args.get("response")
-    if username == None or post_id == None or response == None:
+    if username is None or post_id is None or response is None:
         return make_response(dumps({"message": "Missing parameters"}), 400)
-    response = True if response == "true" else False
+    response = True if response == "true" else False  # pylint: disable=R1719
     if helper.respond_post(username, post_id, response):
         return make_response(dumps({"message": "Success"}), 200)
-    return make_response(dumps({"message": "An error occured"}), 400)
+    return make_response(dumps({"message": "An error occurred"}), 400)
 
 
 @app.route("/api/autocomplete", methods=["GET"])
