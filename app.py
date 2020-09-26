@@ -116,6 +116,8 @@ def posts_delete():
     if deletion:
         flash("Successfully deleted!", "info")
         return redirect(url_for("admin"))
+    flash("Deletion unsuccessful. Please try again later.","info")
+    return None
 
 
 @app.route("/posts/create", methods=["GET", "POST"])
