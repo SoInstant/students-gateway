@@ -332,7 +332,7 @@ def delete_post():
 def download_posts(post_id):
     """Download the responses to a post"""
     # TODO
-    pass
+    return post_id
 
 
 def get_group_suggestions(username: str, query: str) -> list:
