@@ -415,6 +415,4 @@ def set_expo_push_token(username: str, push_token: str) -> bool:
 
 
 if __name__ == "__main__":
-    stuff = download_posts("5f64d4b9ce2728e80c253488")
-    print(stuff)
     pass
