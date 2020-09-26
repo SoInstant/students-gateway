@@ -61,8 +61,10 @@ def authenticate(username: str, password: str) -> tuple:
         password: A string that represents the password of the user to be authenticated
 
     Returns:
-        A tuple contain a boolean value indicating if the authentication attempt succeeded and the user type.
-        If the authentication attempt failed, the user type will be an empty string.
+        A tuple containing:
+            - a boolean value indicating if the authentication attempt succeeded
+            - a string representing the user type. If the authentication attempt failed,
+                 the user type will be an empty string.
     """
     col = db["users"]
     results = col.find_one({"username": username}, {"password_hash": 1, "salt": 1, "user_type": 1})
@@ -79,7 +81,7 @@ def create_user(username: str, name: str, password: str, user_type: str) -> bool
         username: A string representing the username of the user
         name: A string representing the name of the user
         password: A string representing the password of the user
-        user_type: A string with the value 'admin' or 'user' that represents the user type of the user
+        user_type: A string with the value 'admin' or 'user' that represents user type of the user
 
     Returns:
         A boolean value indicating if the creation of the user was successful
@@ -141,7 +143,7 @@ def groups_with_user(username: str) -> list:
     """Finds group(s) with user in it/them
 
     Args:
-        username: username of user
+        username: A string representing the username of the user
 
     Returns:
         A list containing ObjectId objects which contain the group_id of the groups the user is in
@@ -159,9 +161,10 @@ def get_posts(username: str, page: int, todo: int) -> list:
     """Gets the posts of a user, by page
 
     Args:
-        username: username of user
-        page: page of posts (each page has 5 posts)
-        todo: 1 to filter by viewed = True, 0 to avoid filter
+        username: A string representing the username of the user
+        page: An integer representing the page of posts to get (each page has 5 posts)
+        todo: An integer that represents if the posts are filtered by viewed
+            1 to filter by viewed = True; 0 to avoid filter
 
     Returns:
         A list containing dictionary objects that represent a post
@@ -193,14 +196,14 @@ def get_posts(username: str, page: int, todo: int) -> list:
     return user_posts
 
 
-def get_post(post_id):
+def get_post(post_id:str)-> dict:
     """Get a singular post, by id
 
     Args:
-        post_id (str): post id of the post to be get
+        post_id (str): A string representing the post id of the post to get
 
     Returns:
-        Dictionary object that represents a post
+        Dictionary object that represents the post
     """
 
     post = db["posts"].find_one({"_id": ObjectId(post_id)})
@@ -229,15 +232,15 @@ def get_post(post_id):
     return post
 
 
-def view_post(username, post_id):
+def view_post(username:str, post_id:str)->bool:
     """Sets the status of a post to read
 
     Args:
-        username (str): username of user
-        post_id (str): post id of the post to be read
+        username: A string representing the username of the user
+        post_id: A string representing the post id of the post to be set to viewed
 
     Returns:
-        A boolean value indicating if setting the post to read was successful
+        A boolean value indicating if setting the post to viewed was successful
     """
     col = db["posts"]
     update = col.update_one({"_id": ObjectId(post_id)}, {"$addToSet": {"viewed": username}})
@@ -249,8 +252,17 @@ def view_post(username, post_id):
     return update.modified_count == 1
 
 
-def respond_post(username, post_id, response):
-    """Indicate the response by a user to a post"""
+def respond_post(username:str, post_id:str, response: bool):
+    """Indicate the response by a user to a post
+
+    Args:
+        username: A string representing the username of the user
+        post_id: A string representing the post id of the post the user responded to
+        response: A boolean value representing the response by the user
+
+    Returns:
+        A boolean value indicating if the submitting of the response was successful
+    """
     col = db["posts"]
     update = col.update_one(
         {"_id": ObjectId(post_id), "acknowledged.username": username},
@@ -259,7 +271,7 @@ def respond_post(username, post_id, response):
     return update.modified_count == 1
 
 
-def create_post(username, data):
+def create_post(username: str, data: dict)->tuple:
     """Creates a post
 
     Args:
@@ -304,13 +316,14 @@ def create_post(username, data):
 
 def update_post():
     """Updates a post made by an admin"""
-
+    # TODO
 
 def delete_post():
     """Updates a post made by an admin"""
-
+    # TODO
 
 def download_posts():
+    # TODO
     pass
 
 
@@ -318,8 +331,8 @@ def get_group_suggestions(username: str, query: str) -> list:
     """Makes suggestions based on query string
 
     Args:
-        username: username of user conducting search
-        query: query string
+        username: A string representing the username of user conducting search
+        query: A string representing the query string
 
     Returns:
         A list containing dictionaries of suggestions in the form of
@@ -334,9 +347,9 @@ def search_for_post(username: str, query: str, page: int) -> list:
     """Searches for posts containing query string
 
     Args:
-        username: username of user conducting search
-        query: query string
-        page: page of results to be fetched
+        username: A string representing the username of user conducting search
+        query: A string representing the query string
+        page: An integer indicating the page of results to be fetched
 
     Returns:
         A list that contains the posts that match the query string, which are in dictionary form

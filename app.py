@@ -96,8 +96,7 @@ def posts_view():
         flash("Error: No post ID specified!", "error")
         return redirect(url_for("admin"))
     if post["date_due"]:
-        post["date_due"] = datetime.datetime.fromtimestamp(
-            post["date_due"]).strftime("%Y-%m-%d")
+        post["date_due"] = datetime.datetime.fromtimestamp(post["date_due"]).strftime("%Y-%m-%d")
     else:
         post["date_due"] = ""
     return render_template("posts_view.html", post=post, username=session["logged_in"])
@@ -129,8 +128,7 @@ def posts_create():
         # request.form["groups"]
         if request.form["date_due"] != "":
             date_due = int(
-                datetime.datetime.strptime(
-                    request.form["date_due"], "%Y-%m-%d").timestamp()
+                datetime.datetime.strptime(request.form["date_due"], "%Y-%m-%d").timestamp()
             )
         else:
             date_due = None
@@ -171,10 +169,8 @@ def groups_create():
             flash("You were logged out, try again!", "error")
             return redirect(url_for("login"))
 
-        owners = [owner.strip()
-                  for owner in request.form["owners"].splitlines()]
-        members = [member.strip()
-                   for member in request.form["members"].splitlines()]
+        owners = [owner.strip() for owner in request.form["owners"].splitlines()]
+        members = [member.strip() for member in request.form["members"].splitlines()]
 
         if helper.create_group(owners, request.form["name"], members):
             flash("Successfully created!", "info")
@@ -203,13 +199,11 @@ def authenticate():
     if params:
         if params["key"]:
             if params["key"] == "students-gateway-admin":
-                status = helper.authenticate(
-                    params["username"], params["password"])
+                status = helper.authenticate(params["username"], params["password"])
                 if status:
                     return make_response(
                         dumps(
-                            {"auth": True,
-                                "user_type": status[1], "message": "User authenticated", }
+                            {"auth": True, "user_type": status[1], "message": "User authenticated",}
                         ),
                         200,
                     )
