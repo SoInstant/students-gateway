@@ -143,7 +143,9 @@
           <tr>
             <th class="mdl-data-table__cell--non-numeric">User</th>
             <th>Viewed</th>
+            {% if post["requires_acknowledgement"] %}
             <th>Response</th>
+            {% endif %}
           </tr>
         </thead>
         <tbody>
@@ -151,7 +153,9 @@
           <tr>
             <td class="mdl-data-table__cell--non-numeric">{{user}}</td>
             <td><i class="material-icons">{% if responses["viewed"] %}check{% else %}close{% endif %}</i></td>
+            {% if post["requires_acknowledgement"] %}
             <td>{% if responses["acknowledged"] != None %}<i class="material-icons">{% if responses["acknowledged"] %}check{% else %}close{% endif %}</i>{% endif %}</td>
+            {% endif %}
           </tr>
           {% endfor %}
           
