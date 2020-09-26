@@ -14,7 +14,7 @@
 .idea/**/shelf
 .idea/*
 .vscode/*
-secrets.env
+.env
 
 # Generated files
 .idea/**/contentModel.xml
