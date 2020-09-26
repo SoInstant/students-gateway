@@ -26,18 +26,74 @@ db = client["students-gateway"]
 
 # Auth functions
 def generate_salt():
+    """Generates a 16 byte salt
+
+    Returns:
+        A string that representing the 16 byte salt generated
+    """
     return token_hex(16)
 
 
-def generate_hash(password, salt):
+def generate_hash(password: str, salt: str) -> str:
+    """Generates a hash based on a password and salt
+
+    Args:
+        password: A string representing the password
+        salt: A string representing the 16 byte salt
+
+    Returns:
+        A string that representing the salted hash of the password
+
+    Raises:
+        ValueError: Salt must be of length 32
+    """
+    if len(salt) != 32:
+        raise ValueError("Salt must be of length 32")
     string = password + salt
     return hashlib.sha256(string.encode()).hexdigest()
 
 
-def create_user(username, name, password, user_type):
+def authenticate(username: str, password: str) -> tuple:
+    """Authenticates a user
+
+    Args:
+        username: A string that represents the username of the user to be authenticated
+        password: A string that represents the password of the user to be authenticated
+
+    Returns:
+        A tuple contain a boolean value indicating if the authentication attempt succeeded and the user type.
+        If the authentication attempt failed, the user type will be an empty string.
+    """
     col = db["users"]
+    results = col.find_one({"username": username}, {"password_hash": 1, "salt": 1, "user_type": 1})
+    if results:
+        if generate_hash(password, results["salt"]) == results["password_hash"]:
+            return True, results["user_type"]
+    return False, ""
+
+
+def create_user(username: str, name: str, password: str, user_type: str) -> bool:
+    """Creates a user in the database
+
+    Args:
+        username: A string representing the username of the user
+        name: A string representing the name of the user
+        password: A string representing the password of the user
+        user_type: A string with the value 'admin' or 'user' that represents the user type of the user
+
+    Returns:
+        A boolean value indicating if the creation of the user was successful
+
+    Raise:
+        ValueError: user_type must be either 'admin' or 'user'
+    """
+    if user_type not in ("admin", "user"):
+        raise ValueError("user_type must be either 'admin' or 'user'")
+
     salt = generate_salt()
     password_hash = generate_hash(password, salt)
+
+    col = db["users"]
     insert = col.insert_one(
         {
             "username": username,
@@ -50,25 +106,35 @@ def create_user(username, name, password, user_type):
     return insert.acknowledged
 
 
-def create_group(owner_id: list, name: str, members: list):
+def create_group(owner_id: list, name: str, members: list) -> bool:
+    """Creates a group in the database
+
+    Args:
+        owner_id: A list containing strings that represent the id(s) of the owner(s)
+        name: A string representing the name of the group
+        members: A list containing strings that represent the id(s) of the member(s)
+
+    Returns:
+        A boolean value indicating if the creation of the group was successful
+    """
     col = db["groups"]
     insert = col.insert_one({"name": name, "owners": owner_id, "members": members})
     return insert.acknowledged
 
 
-def add_user_to_group(group_id: str, user_id: str):
+def add_user_to_group(group_id: str, username: str) -> bool:
+    """Adds a user to a group
+
+    Args:
+        group_id: A string containing the group id of the group
+        username: A string containing the username of the user to be added
+
+    Returns:
+        A boolean value indicating if the addition of the user to the group was successful
+    """
     col = db["groups"]
-    update = col.update_one({"_id": ObjectId(group_id)}, {"$push": {"members": user_id}})
+    update = col.update_one({"_id": ObjectId(group_id)}, {"$push": {"members": username}})
     return update.modified_count == 1
-
-
-def authenticate(username, password) -> tuple:
-    col = db["users"]
-    results = col.find_one({"username": username}, {"password_hash": 1, "salt": 1, "user_type": 1})
-    if results:
-        if generate_hash(password, results["salt"]) == results["password_hash"]:
-            return True, results["user_type"]
-    return False, ""
 
 
 def groups_with_user(username: str) -> list:
