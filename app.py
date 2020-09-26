@@ -222,7 +222,7 @@ def authenticate():
 @app.route("/api/users/setExpoPushToken")
 def api_users_setExpoPushToken():
     username = request.args.get("username")
-    push_token = request.args.get("token")
+    push_token = request.args.get("push_token")
     if helper.set_expo_push_token(username, push_token):
         return make_response(dumps({"message": "Success"}), 200)
     return make_response(dumps({"message": "An error occurred"}), 400)
