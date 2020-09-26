@@ -1,5 +1,9 @@
-import requests
+"""Notifications functions for app.py
+
+This module provides notifications.
+"""
 import json
+import requests
 
 
 def notify(push_tokens: list, title: str, body: str):
@@ -13,7 +17,7 @@ def notify(push_tokens: list, title: str, body: str):
     Returns:
         Whether operation is successful
     """
-    r = requests.post(
+    request = requests.post(
         "https://exp.host/--/api/v2/push/send",
         data=json.dumps(
             {
@@ -29,8 +33,8 @@ def notify(push_tokens: list, title: str, body: str):
             "content-type": "application/json",
         },
     )
-    print(r.text)
-    return r.status_code == 200
+    print(request.text)
+    return request.status_code == 200
 
 
 if __name__ == "__main__":

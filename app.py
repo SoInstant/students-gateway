@@ -220,7 +220,7 @@ def authenticate():
 
 
 @app.route("/api/users/setExpoPushToken")
-def api_users_setExpoPushToken():
+def api_users_setexpopushtoken():
     username = request.args.get("username")
     push_token = request.args.get("push_token")
     if helper.set_expo_push_token(username, push_token):
