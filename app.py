@@ -74,9 +74,8 @@ def admin():
         posts = helper.get_posts(session["logged_in"], page, 0)
 
     for post in posts:
-        post["date_created"] = datetime.datetime.fromtimestamp(int(post["date_created"])+28800).strftime(
-            "%Y-%m-%d %H:%M:%S"
-        )
+        post["date_created"] = datetime.datetime.fromtimestamp(
+            int(post["date_created"])+28800).strftime("%Y-%m-%d %H:%M:%S")
         if len(post["body"]) > 100:  # Trim long descriptions
             post["body"] = post["body"][:100] + "..."
 
@@ -197,7 +196,7 @@ def authenticate():
                     return make_response(
                         dumps(
                             {"auth": True,
-                                "user_type": status[1], "message": "User authenticated", }
+                             "user_type": status[1], "message": "User authenticated", }
                         ),
                         200,
                     )
