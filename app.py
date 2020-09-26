@@ -239,8 +239,8 @@ def api_posts_home():
     return "Please provide all of the arguments required."
 
 
-@app.route("/api/posts/read")
-def api_posts_read():
+@app.route("/api/posts/view")
+def api_posts_view():
     username = request.args.get("username")
     post_id = request.args.get("id")
     if username == None or post_id == None:
