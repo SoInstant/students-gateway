@@ -152,14 +152,12 @@ def groups_with_user(username: str) -> list:
         username: A string representing the username of the user
 
     Returns:
-        A list containing ObjectId objects which contain the group_id of the groups the user is in
+        A list containing information of groups that user is in
     """
-    return [
-        ObjectId(group["_id"])
-        for group in list(
-            db["groups"].find({"$or": [{"owners": username}, {"members": username}]}, {"_id": 1})
-        )
-    ]
+    groups =list(db["groups"].find({"$or": [{"owners": username}, {"members": username}]}))
+    for group in groups:
+        group["_id"] = ObjectId(group["_id"])
+    return group
 
 
 # Post functions
@@ -175,7 +173,7 @@ def get_posts(username: str, page: int, todo: int) -> list:
     Returns:
         A list containing dictionary objects that represent a post
     """
-    groups = groups_with_user(username)
+    groups = [group["_id"] for group in groups_with_user(username)]
 
     query = {"group_id": {"$in": groups}}
     if todo:
@@ -390,7 +388,7 @@ def search_for_post(username: str, query: str, page: int) -> list:
         A list that contains the posts that match the query string, which are in dictionary form
     """
     col = db["posts"]
-    groups = groups_with_user(username)
+    groups = [group["_id"] for group in groups_with_user(username)]
     return list(
         col.find({"$text": {"$search": query}, "group_id": {"$in": groups}})
             .sort("date_created", -1)
