@@ -112,10 +112,10 @@ def posts_edit():
 
 @app.route("/posts/delete", methods=["POST"])
 def posts_delete():
-    # request.form...
-    # if success
-    flash("Successfully deleted!", "info")
-    return redirect(url_for("admin"))
+    deletion = helper.delete_post(request.form["_id"])
+    if deletion:
+        flash("Successfully deleted!", "info")
+        return redirect(url_for("admin"))
 
 
 @app.route("/posts/create", methods=["GET", "POST"])

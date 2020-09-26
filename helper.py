@@ -324,9 +324,18 @@ def update_post():
     # TODO
 
 
-def delete_post():
-    """Updates a post made by an admin"""
-    # TODO
+def delete_post(post_id: str) -> bool:
+    """Deletes a post made by an admin
+
+    Args:
+        post_id: A string representing the post id of the post to be deleted
+
+    Returns:
+        A boolean value indicating if the deletion of the post was successful
+    """
+    col = db["posts"]
+    delete = col.delete_one({"_id": ObjectId(post_id)})
+    return delete.deleted_count == 1
 
 
 def download_posts(post_id):
@@ -366,9 +375,9 @@ def search_for_post(username: str, query: str, page: int) -> list:
     groups = groups_with_user(username)
     return list(
         col.find({"$text": {"$search": query}, "group_id": {"$in": groups}})
-        .sort("date_created", -1)
-        .skip((page - 1) * 5)
-        .limit(5)
+            .sort("date_created", -1)
+            .skip((page - 1) * 5)
+            .limit(5)
     )
 
 
