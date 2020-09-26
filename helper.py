@@ -329,7 +329,8 @@ def delete_post():
     # TODO
 
 
-def download_posts():
+def download_posts(post_id):
+    """Download the responses to a post"""
     # TODO
     pass
 
