@@ -289,7 +289,7 @@ def authenticate():
                 if status:
                     return make_response(
                         dumps(
-                            {"auth": True, "user_type": status[1], "message": "User authenticated"}
+                            {"auth": True, "user_type": status[1], "message": "User authenticated",}
                         ),
                         200,
                     )
