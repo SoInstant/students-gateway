@@ -16,11 +16,16 @@ Students' Gateway enables teachers to interact with students more conveniently o
 
 ## 🚀 Features
 
-WIP
+- Send announcements to students
+- Receive responses from students regarding announcements
 
 ## ⛏️ Installation
 
-- On Play Store (hopefully)
+1. Clone the repository
+2. `pip install -r requirements.txt`
+3. Set your environment variables for `DB_USERNAME` and `DB_PASSWORD`
+
+Then, run `app.py`
 
 ## 📃  License
 
