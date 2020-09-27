@@ -120,7 +120,7 @@ def posts_download():
     return Response(
         helper.download_post(post_id).to_csv(index=False),
         mimetype="text/csv",
-        headers={"Content-disposition": f"attachment; filename={helper.generate_salt()}.csv"},
+        headers={"Content-disposition": f"attachment; filename={post_id}.csv"},
     )
 
 
