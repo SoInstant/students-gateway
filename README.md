@@ -14,8 +14,6 @@ Students' Gateway enables teachers to interact with students more conveniently o
 |-|-|
 | ![Demo image 1](.github/demo-1.png) | ![Demo image 2](.github/demo-2.png) |
 
-![Demo image](.github/demo.png)
-
 ## 🚀 Features
 
 WIP
