@@ -1,7 +1,7 @@
 # pylint: disable=missing-module-docstring,missing-function-docstring
+import os
 import datetime
 from time import time
-import os.environ as env
 
 from bson.json_util import dumps
 from flask import (
@@ -19,7 +19,13 @@ from flask import (
 import helper
 
 app = Flask(__name__)
-app.secret_key = env["SECRET_KEY"]
+if os.path.isfile(".env"):  # for local testing
+    from dotenv import load_dotenv
+
+    load_dotenv(verbose=True)
+    app.secret_key = os.getenv("SECRET_KEY")
+else:
+    app.secret_key = os.environ["SECRET_KEY"]
 
 
 def check_authentication() -> bool:
