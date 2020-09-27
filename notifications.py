@@ -38,4 +38,8 @@ def notify(push_tokens: list, title: str, body: str):
 
 
 if __name__ == "__main__":
-    notify(["ExponentPushToken[Jue46jOCu0aDtQ7iMKKERW]"], "New post", "Bitch")
+    notify(
+        ["ExponentPushToken[Jue46jOCu0aDtQ7iMKKERW]"],
+        "Remedial lessons!",
+        "2020 Y3 Biology - Wu Bokai\nPost fcontent........",
+    )
