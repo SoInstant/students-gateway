@@ -114,7 +114,7 @@ def posts_view():
 def posts_download():
     post_id = request.args.get("id")
 
-    if post_id == None:
+    if post_id is None:
         return "Missing params"
 
     df = helper.download_posts(post_id)
@@ -122,7 +122,7 @@ def posts_download():
     return Response(
         df.to_csv(),
         mimetype="text/csv",
-        headers={"Content-disposition": f"attachment; filename={post_id}.csv"},
+        headers={"Content-disposition": f"attachment; filename={helper.generate_salt()}.csv"},
     )
 
 
@@ -186,7 +186,7 @@ def groups():
 @app.route("/groups/view")
 def groups_view():
     group_id = request.args.get("id")
-    if group_id == None:
+    if group_id is None:
         flash("Missing id", "error")
         return redirect(url_for("groups"))
     group = helper.get_group(group_id)
