@@ -399,18 +399,20 @@ def download_post(post_id):
             1  23ylohy820c       1
     """
     post = get_post(post_id)
-    responses = post["responses"]
-    requires_acknowledgement = post["requires_acknowledgement"]
-    data = []
-    for user, response in responses.items():
-        i = [user, int(response["viewed"])]
-        if requires_acknowledgement:
-            if response["acknowledged"] is None:
-                i.append("")
-            else:
-                i.append(int(response["acknowledged"]))
-        data.append(i)
-    return pandas.DataFrame.from_records(data, columns=["username", "viewed", "response"])
+    if post != {}:
+        responses = post["responses"]
+        requires_acknowledgement = post["requires_acknowledgement"]
+        data = []
+        for user, response in responses.items():
+            i = [user, int(response["viewed"])]
+            if requires_acknowledgement:
+                if response["acknowledged"] is None:
+                    i.append("")
+                else:
+                    i.append(int(response["acknowledged"]))
+            data.append(i)
+        return pandas.DataFrame.from_records(data, columns=["username", "viewed", "response"])
+    return pandas.DataFrame()
 
 
 def search_for_group(username: str, query: str, suggestion=False) -> list:
@@ -470,13 +472,4 @@ def set_expo_push_token(username: str, push_token: str) -> bool:
 
 
 if __name__ == "__main__":
-    import json
-
-    p_1 = get_post("5f64d4b9ce2728e80c253488")
-    p_1["_id"] = str(p_1["_id"])
-    p_1["group_id"] = str(p_1["group_id"])
-    p_2 = get_post("5f658197dd01a96f34457097")
-    p_2["_id"] = str(p_2["_id"])
-    p_2["group_id"] = str(p_2["group_id"])
-    print(json.dumps(p_1), json.dumps(p_2))
-    print(download_post("5f64d4b9ce2728e80c253488"))
+    print("Pylint sucks L")
