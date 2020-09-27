@@ -413,20 +413,24 @@ def download_post(post_id):
     return pandas.DataFrame.from_records(data, columns=["username", "viewed", "response"])
 
 
-def get_group_suggestions(username: str, query: str) -> list:
+def search_for_group(username: str, query: str, suggestion=False) -> list:
     """Makes suggestions based on query string
 
     Args:
         username: A string representing the username of user conducting search
         query: A string representing the query string
+        suggestion: A boolean value that indicates whether to provide data in form conducive
+            for jquery's autocomplete. Defaults to False
 
     Returns:
         A list containing dictionaries of suggestions in the form of
         {'label' : group_name, 'value': group_id}
     """
     col = db["groups"]
-    suggestions = col.find({"$text": {"$search": query}, "owners": username}, {"_id": 1, "name": 1})
-    return [{"label": group["name"], "value": str(group["_id"])} for group in suggestions]
+    groups = col.find({"$text": {"$search": query}, "owners": username}, {"_id": 1, "name": 1})
+    if suggestion:
+        return [{"label": group["name"], "value": str(group["_id"])} for group in groups]
+    return groups
 
 
 def search_for_post(username: str, query: str, page: int) -> list:

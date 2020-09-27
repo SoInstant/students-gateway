@@ -302,7 +302,7 @@ def autocomplete():
     query_string = request.args.get("term")
     username = request.args.get("username")
     if query_string and username:
-        return dumps(helper.get_group_suggestions(username, query_string))
+        return dumps(helper.search_for_group(username, query_string, suggestion=True))
     return "No query string/username provided"
 
 
