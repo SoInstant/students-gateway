@@ -204,9 +204,10 @@ def get_posts(username: str, page: int, todo: int) -> list:
         post["group_name"] = group_name
         post["viewed"] = username in post["viewed"]
         response = None
-        for response_ in post["acknowledged"]:
-            if response_["username"] == username:
-                response = response_["response"]
+        if "acknowledged" in post:
+            for response_ in post["acknowledged"]:
+                if response_["username"] == username:
+                    response = response_["response"]
         post["acknowledged"] = response
 
         del post["author_id"], post["group_id"]
@@ -375,10 +376,10 @@ def delete_post(post_id: str) -> bool:
 
 def download_post(post_id):
     """Download the responses to a post
-    
+
     Args:
         post_id: A string representing the id of the post to be downloaded
-        
+
     Returns:
         A pandas.DataFrame object that contains the data of the post, with columns "username",
         "viewed" and "response".
@@ -466,6 +467,7 @@ def set_expo_push_token(username: str, push_token: str) -> bool:
 
 if __name__ == "__main__":
     import json
+
     p_1 = get_post("5f64d4b9ce2728e80c253488")
     p_1["_id"] = str(p_1["_id"])
     p_1["group_id"] = str(p_1["group_id"])
