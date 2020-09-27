@@ -118,7 +118,7 @@ def posts_download():
         return "Missing params"
 
     return Response(
-        helper.download_post(post_id).to_csv(),
+        helper.download_post(post_id).to_csv(index=False),
         mimetype="text/csv",
         headers={"Content-disposition": f"attachment; filename={helper.generate_salt()}.csv"},
     )
