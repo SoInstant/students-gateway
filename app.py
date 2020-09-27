@@ -3,6 +3,7 @@ import os
 import datetime
 from time import time
 
+from bson import ObjectId
 from bson.json_util import dumps
 from flask import (
     Flask,
@@ -126,10 +127,38 @@ def posts_download():
 
 @app.route("/posts/edit", methods=["POST"])
 def posts_edit():
-    # request.form...
-    # if success
-    flash("Successfully edited!", "info")
-    return redirect(url_for("posts_view", id=request.args.get("id")))
+    if not check_authentication():
+        flash("You were logged out, try again!", "error")
+        return redirect(url_for("login"))
+
+    if request.form["date_due"] != "":
+        date_due = int(datetime.datetime.strptime(request.form["date_due"], "%Y-%m-%d").timestamp())
+    else:
+        date_due = None
+
+    post_id = request.args.get("id")
+    if post_id == None:
+        flash("Missing parameters", "error")
+        return redirect(url_for("posts_view"))
+
+    status = helper.update_post(
+        post_id,
+        {
+            "title": request.form["title"],
+            "body": request.form["body"],
+            "group_id": ObjectId(request.form["groups"]),
+            "requires_acknowledgement": "acknowledgement" in request.form,
+            "location": None if request.form["location"] == "" else request.form["location"],
+            "date_due": date_due,
+        },
+    )
+
+    if status:
+        flash("Successfully edited!", "info")
+    else:
+        flash(f"An error occurred.", "error")
+
+    return redirect(url_for("posts_view", id=post_id))
 
 
 @app.route("/posts/delete", methods=["POST"])
@@ -177,8 +206,11 @@ def posts_create():
 
 @app.route("/groups")
 def groups():
-    groups_with_user = helper.groups_with_user(session["logged_in"])
-    return render_template("groups.html", groups=groups_with_user)
+    if query := request.args.get("query"):
+        groups = helper.search_for_group(session["logged_in"], query)
+    else:
+        groups = helper.groups_with_user(session["logged_in"])
+    return render_template("groups.html", groups=groups, query=query)
 
 
 @app.route("/groups/view")
@@ -205,19 +237,42 @@ def groups_create():
             flash("Successfully created!", "info")
         else:
             flash("An error occurred!", "error")
-        return redirect(url_for("groups_view"))
+        return redirect(url_for("groups"))
     return render_template("groups_create.html", you=session["logged_in"])
 
 
 @app.route("/groups/edit", methods=["POST"])
 def groups_edit():
-    flash("Successfully edited!", "info")
-    return redirect(url_for("groups_view", id=request.args.get("id")))
+    if not check_authentication():
+        flash("You were logged out, try again!", "error")
+        return redirect(url_for("login"))
+
+    group_id = request.args.get("id")
+    if group_id == None:
+        flash("Missing parameters", "error")
+        return redirect(url_for("groups"))
+
+    owners = [owner.strip() for owner in request.form["owners"].splitlines()]
+    members = [member.strip() for member in request.form["members"].splitlines()]
+
+    status = helper.update_group(
+        group_id, {"name": request.form["name"], "owners": owners, "members": members}
+    )
+    if status:
+        flash("Successfully edited!", "info")
+    else:
+        flash("An error occurred!", "error")
+
+    return redirect(url_for("groups_view", id=group_id))
 
 
 @app.route("/groups/delete", methods=["POST"])
 def groups_delete():
-    if helper.delete_post(request.args.get("id")):
+    group_id = request.args.get("id")
+    if group_id == None:
+        flash("Missing params", "error")
+
+    if helper.delete_group(group_id):
         flash("Successfully deleted!", "info")
     else:
         flash("An error occurred!", "error")

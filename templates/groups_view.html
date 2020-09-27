@@ -103,7 +103,7 @@ head %}
     <p>This action cannot be undone. Continue?</p>
   </div>
   <div class="mdl-dialog__actions">
-    <form method="POST" action="/groups/delete?id=">
+    <form method="POST" action="/groups/delete?id={{group["_id"]}}">
       <input type="submit" class="mdl-button"value="Delete"></input>
     </form>
     <button type="button" class="mdl-button close">Cancel</button>

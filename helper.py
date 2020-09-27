@@ -45,9 +45,7 @@ def authenticate(username: str, password: str) -> tuple:
                  the user type will be an empty string.
     """
     col = db["users"]
-    results = col.find_one(
-        {"username": username}, {"password_hash": 1, "salt": 1, "user_type": 1}
-    )
+    results = col.find_one({"username": username}, {"password_hash": 1, "salt": 1, "user_type": 1})
     if results:
         if generate_hash(password, results["salt"]) == results["password_hash"]:
             return True, results["user_type"]
@@ -156,9 +154,7 @@ def groups_with_user(username: str) -> list:
     Returns:
         A list containing information of groups that user is in
     """
-    groups = list(
-        db["groups"].find({"$or": [{"owners": username}, {"members": username}]})
-    )
+    groups = list(db["groups"].find({"$or": [{"owners": username}, {"members": username}]}))
     for group in groups:
         group["_id"] = ObjectId(group["_id"])
     return groups
@@ -175,7 +171,7 @@ def update_group(group_id: str, data: dict) -> bool:
         A boolean value indicating if the update was successful
     """
     col = db["groups"]
-    update = col.update_one({"_id": ObjectId(group_id)}, data)
+    update = col.update_one({"_id": ObjectId(group_id)}, {"$set": data})
     return update.modified_count == 1
 
 
@@ -207,13 +203,11 @@ def search_for_group(username: str, query: str, suggestion=False) -> list:
         {'label' : group_name, 'value': group_id}
     """
     col = db["groups"]
-    groups = col.find(
-        {"$text": {"$search": query}, "owners": username}, {"_id": 1, "name": 1}
+    groups = list(
+        col.find({"$text": {"$search": query}, "owners": username}, {"_id": 1, "name": 1})
     )
     if suggestion:
-        return [
-            {"label": group["name"], "value": str(group["_id"])} for group in groups
-        ]
+        return [{"label": group["name"], "value": str(group["_id"])} for group in groups]
     return groups
 
 
@@ -316,16 +310,11 @@ def get_post(post_id: str) -> dict:
     if post:
         group = db["groups"].find_one({"_id": post["group_id"]})
 
-        post["author_name"] = db["users"].find_one({"username": post["author_id"]})[
-            "name"
-        ]
+        post["author_name"] = db["users"].find_one({"username": post["author_id"]})["name"]
         post["group_name"] = group["name"]
         if post["requires_acknowledgement"]:
             post["acknowledged"] = dict(
-                [
-                    (entry["username"], entry["response"])
-                    for entry in post["acknowledged"]
-                ]
+                [(entry["username"], entry["response"]) for entry in post["acknowledged"]]
             )
 
         group_members = group["members"]
@@ -364,9 +353,7 @@ def view_post(username: str, post_id: str) -> bool:
         A boolean value indicating if setting the post to viewed was successful
     """
     col = db["posts"]
-    update = col.update_one(
-        {"_id": ObjectId(post_id)}, {"$addToSet": {"viewed": username}}
-    )
+    update = col.update_one({"_id": ObjectId(post_id)}, {"$addToSet": {"viewed": username}})
     if update.modified_count:
         requires_acknowledgedment = col.find_one({"_id": ObjectId(post_id)})[
             "requires_acknowledgement"
@@ -374,11 +361,7 @@ def view_post(username: str, post_id: str) -> bool:
         if requires_acknowledgedment:
             col.update_one(
                 {"_id": ObjectId(post_id)},
-                {
-                    "$addToSet": {
-                        "acknowledged": {"username": username, "response": None}
-                    }
-                },
+                {"$addToSet": {"acknowledged": {"username": username, "response": None}}},
             )
     return update.modified_count == 1
 
@@ -413,7 +396,7 @@ def update_post(post_id: str, data: dict) -> bool:
         A boolean value indicating if the update was successful
     """
     col = db["posts"]
-    update = col.update_one({"_id": ObjectId(post_id)}, data)
+    update = col.update_one({"_id": ObjectId(post_id)}, {"$set": data})
     return update.modified_count == 1
 
 
@@ -468,9 +451,7 @@ def download_post(post_id):
                 else:
                     i.append(int(response["acknowledged"]))
             data.append(i)
-        return pandas.DataFrame.from_records(
-            data, columns=["username", "viewed", "response"]
-        )
+        return pandas.DataFrame.from_records(data, columns=["username", "viewed", "response"])
     return pandas.DataFrame()
 
 
@@ -487,12 +468,29 @@ def search_for_post(username: str, query: str, page: int) -> list:
     """
     col = db["posts"]
     groups = [group["_id"] for group in groups_with_user(username)]
-    return list(
+    user_posts = list(
         col.find({"$text": {"$search": query}, "group_id": {"$in": groups}})
         .sort("date_created", -1)
         .skip((page - 1) * 5)
         .limit(5)
     )
+
+    for post in user_posts:
+        author_name = db["users"].find_one({"username": post["author_id"]})["name"]
+        group_name = db["groups"].find_one({"_id": post["group_id"]})["name"]
+
+        post["author_name"] = author_name
+        post["group_name"] = group_name
+        post["viewed"] = username in post["viewed"]
+        response = None
+        if "acknowledged" in post:
+            for response_ in post["acknowledged"]:
+                if response_["username"] == username:
+                    response = response_["response"]
+        post["acknowledged"] = response
+
+        del post["author_id"], post["group_id"]
+    return user_posts
 
 
 # Misc functions
@@ -507,9 +505,7 @@ def set_expo_push_token(username: str, push_token: str) -> bool:
        Whether set is successful
     """
     col = db["users"]
-    update = col.update_one(
-        {"username": username}, {"$set": {"push_token": push_token}}
-    )
+    update = col.update_one({"username": username}, {"$set": {"push_token": push_token}})
     return update.modified_count == 1
 
 
