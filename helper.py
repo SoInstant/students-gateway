@@ -1,4 +1,4 @@
-# pylint: disable=missing-module-docstring,consider-using-dict-comprehension,fixme
+# pylint: disable=consider-using-dict-comprehension
 """Helper functions for app.py
 
 This module provides authentication, posts-related, groups-related, user-related and miscellaneous
@@ -212,8 +212,6 @@ def search_for_group(username: str, query: str, suggestion=False) -> list:
 
 
 # Post functions
-
-
 def create_post(username: str, data: dict) -> tuple:
     """Creates a post
 
@@ -271,9 +269,23 @@ def get_posts(username: str, page: int, todo: int) -> list:
     """
     groups = [group["_id"] for group in groups_with_user(username)]
 
-    query = {"group_id": {"$in": groups}}
     if todo:
-        query["viewed"] = {"$nin": [username]}
+        query = {
+            "group_id": {"$in": groups},
+            "$or": [
+                {"viewed": {"$nin": ["23ylohy820c"]}},  # Post that are not viewed
+                {
+                    "$and": [  # Posts that have been viewed but not responded to
+                        {"viewed": {"$in": ["23ylohy820c"]}},
+                        {"acknowledged.response": None},
+                    ]
+                },
+            ],
+        }
+    else:
+        query = {
+            "group_id": {"$in": groups},
+        }
 
     user_posts = list(
         db["posts"].find(query).sort("date_created", -1).skip((page - 1) * 5).limit(5)
