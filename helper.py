@@ -227,25 +227,33 @@ def get_post(post_id: str) -> dict:
         group = db["groups"].find_one({"_id": post["group_id"]})
 
         post["author_name"] = db["users"].find_one({"username": post["author_id"]})["name"]
-        # post["group_name"] = group["name"]
-        post["acknowledged"] = dict(
-            [(entry["username"], entry["response"]) for entry in post["acknowledged"]]
-        )
+        post["group_name"] = group["name"]
+        if post["requires_acknowledgement"]:
+            post["acknowledged"] = dict(
+                [(entry["username"], entry["response"]) for entry in post["acknowledged"]]
+            )
 
         group_members = group["members"]
         responses = {}
         for member in group_members:
-            try:
-                response = post["acknowledged"][member]
-            except KeyError:
-                response = None
-            responses[member] = {
-                "viewed": member in post["viewed"],
-                "acknowledged": response,
-            }
+            if post["requires_acknowledgement"]:
+                try:
+                    response = post["acknowledged"][member]
+                except KeyError:
+                    response = None
+                responses[member] = {
+                    "viewed": member in post["viewed"],
+                    "acknowledged": response,
+                }
+            else:
+                responses[member] = {
+                    "viewed": member in post["viewed"],
+                }
         post["responses"] = responses
 
-        del post["author_id"], post["viewed"], post["acknowledged"]  # , post["group_id"]
+        del post["author_id"], post["viewed"]
+        if post["requires_acknowledgement"]:
+            del post["acknowledged"]
         return post
     return {}
 
@@ -263,10 +271,14 @@ def view_post(username: str, post_id: str) -> bool:
     col = db["posts"]
     update = col.update_one({"_id": ObjectId(post_id)}, {"$addToSet": {"viewed": username}})
     if update.modified_count:
-        col.update_one(
-            {"_id": ObjectId(post_id)},
-            {"$addToSet": {"acknowledged": {"username": username, "response": None}}},
-        )
+        requires_acknowledgedment = col.find_one({"_id": ObjectId(post_id)})[
+            "requires_acknowledgement"
+        ]
+        if requires_acknowledgedment:
+            col.update_one(
+                {"_id": ObjectId(post_id)},
+                {"$addToSet": {"acknowledged": {"username": username, "response": None}}},
+            )
     return update.modified_count == 1
 
 
@@ -361,7 +373,7 @@ def delete_post(post_id: str) -> bool:
     return delete.deleted_count == 1
 
 
-def download_posts(post_id):
+def download_post(post_id):
     """Download the responses to a post
     
     Args:
@@ -385,25 +397,19 @@ def download_posts(post_id):
             0  23ychij199g       1        1
             1  23ylohy820c       1
     """
-    post = db["posts"].find_one({"_id": ObjectId(post_id)})
-    group = db["groups"].find_one({"_id": post["group_id"]})
-
-    post["acknowledged"] = dict(
-        [(entry["username"], entry["response"]) for entry in post["acknowledged"]]
-    )
-
-    group_members = group["members"]
-    responses = []
-    for member in group_members:
-        try:
-            if post["acknowledged"][member]:
-                response = int(post["acknowledged"][member])
+    post = get_post(post_id)
+    responses = post["responses"]
+    requires_acknowledgement = post["requires_acknowledgement"]
+    data = []
+    for user, response in responses.items():
+        i = [user, int(response["viewed"])]
+        if requires_acknowledgement:
+            if response["acknowledged"] is None:
+                i.append("")
             else:
-                response = ""
-        except KeyError:
-            response = ""
-        responses.append((member, int(member in post["viewed"]), response))
-    return pandas.DataFrame.from_records(responses, columns=["username", "viewed", "response"])
+                i.append(int(response["acknowledged"]))
+        data.append(i)
+    return pandas.DataFrame.from_records(data, columns=["username", "viewed", "response"])
 
 
 def get_group_suggestions(username: str, query: str) -> list:
@@ -459,5 +465,12 @@ def set_expo_push_token(username: str, push_token: str) -> bool:
 
 
 if __name__ == "__main__":
-    post_re = get_post("5f64d4b9ce2728e80c453488")
-    print(post_re)
+    import json
+    p_1 = get_post("5f64d4b9ce2728e80c253488")
+    p_1["_id"] = str(p_1["_id"])
+    p_1["group_id"] = str(p_1["group_id"])
+    p_2 = get_post("5f658197dd01a96f34457097")
+    p_2["_id"] = str(p_2["_id"])
+    p_2["group_id"] = str(p_2["group_id"])
+    print(json.dumps(p_1), json.dumps(p_2))
+    print(download_post("5f64d4b9ce2728e80c253488"))

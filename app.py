@@ -117,7 +117,7 @@ def posts_download():
     if post_id is None:
         return "Missing params"
 
-    df = helper.download_posts(post_id)
+    df = helper.download_post(post_id)
 
     return Response(
         df.to_csv(),
