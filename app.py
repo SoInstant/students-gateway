@@ -137,7 +137,7 @@ def posts_edit():
         date_due = None
 
     post_id = request.args.get("id")
-    if post_id == None:
+    if post_id is None:
         flash("Missing parameters", "error")
         return redirect(url_for("posts_view"))
 
@@ -156,7 +156,7 @@ def posts_edit():
     if status:
         flash("Successfully edited!", "info")
     else:
-        flash(f"An error occurred.", "error")
+        flash("An error occurred.", "error")
 
     return redirect(url_for("posts_view", id=post_id))
 
@@ -207,10 +207,10 @@ def posts_create():
 @app.route("/groups")
 def groups():
     if query := request.args.get("query"):
-        groups = helper.search_for_group(session["logged_in"], query)
+        groups_ = helper.search_for_group(session["logged_in"], query)
     else:
-        groups = helper.groups_with_user(session["logged_in"])
-    return render_template("groups.html", groups=groups, query=query)
+        groups_ = helper.groups_with_user(session["logged_in"])
+    return render_template("groups.html", groups=groups_, query=query)
 
 
 @app.route("/groups/view")
@@ -248,7 +248,7 @@ def groups_edit():
         return redirect(url_for("login"))
 
     group_id = request.args.get("id")
-    if group_id == None:
+    if group_id is None:
         flash("Missing parameters", "error")
         return redirect(url_for("groups"))
 
@@ -269,7 +269,7 @@ def groups_edit():
 @app.route("/groups/delete", methods=["POST"])
 def groups_delete():
     group_id = request.args.get("id")
-    if group_id == None:
+    if group_id is None:
         flash("Missing params", "error")
 
     if helper.delete_group(group_id):
