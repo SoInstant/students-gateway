@@ -44,9 +44,9 @@
         </div>
         <div class="mdl-textfield mdl-js-textfield">
           <input class="mdl-textfield__input" type="text" id="groups"
-          name="groups" value="{{post["group_name"]}}" required disabled />
+          name="groups" value="{{post["group_id"]}}" required disabled />
           <label class="mdl-textfield__label" for="groups"
-            >Groups</label
+            >Group</label
           >
         </div>
         <div class="mdl-textfield mdl-js-textfield">
@@ -55,7 +55,7 @@
             type="text"
             id="location"
             name="location"
-            value="{{post["location"]}}"
+            value="{% if post["location"] %}{{post["location"]}}{% endif %}"
             disabled
           />
           <label class="mdl-textfield__label" for="location"
