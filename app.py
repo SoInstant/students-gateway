@@ -161,7 +161,12 @@ def groups():
 
 @app.route("/groups/view")
 def groups_view():
-    return render_template("groups_view.html", you=session["logged_in"])
+    group_id = request.args.get("id")
+    if group_id == None:
+        flash("Missing id", "error")
+        return redirect(url_for("groups"))
+    group = helper.get_group(group_id)
+    return render_template("groups_view.html", group=group)
 
 
 @app.route("/groups/create", methods=["GET", "POST"])
@@ -185,7 +190,7 @@ def groups_create():
 @app.route("/groups/edit", methods=["POST"])
 def groups_edit():
     flash("Successfully edited!", "info")
-    return redirect(url_for("groups_view"))
+    return redirect(url_for("groups_view", id=request.args.get("id")))
 
 
 @app.route("/groups/delete", methods=["POST"])

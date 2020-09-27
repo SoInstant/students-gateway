@@ -30,7 +30,7 @@ head %}
 </h1>
 
 <div>
-  <form class="column" action="/groups/edit" method="POST">
+  <form class="column" action="/groups/edit?id={{group["_id"]}}" method="POST">
     <div class="mdl-textfield mdl-js-textfield">
       <input
         class="mdl-textfield__input"
@@ -39,7 +39,7 @@ head %}
         name="name"
         required
         disabled
-        value=""
+        value="{{group["name"]}}"
       />
       <label class="mdl-textfield__label" for="title">Group name</label>
     </div>
@@ -54,8 +54,7 @@ head %}
         required
         disabled
       >
-value
-    </textarea>
+{{"\n".join(group["owners"])}}</textarea>
       <label class="mdl-textfield__label" for="body"
         >Owners (GOTO ID, separate by line)</label
       >
@@ -71,7 +70,7 @@ value
         required
         disabled
       >
-value</textarea>
+{{"\n".join(group["members"])}}</textarea>
       <label class="mdl-textfield__label" for="body"
         >Members (GOTO ID, separate by line)</label
       >
@@ -126,7 +125,7 @@ value</textarea>
 
   function edit() {
     document.getElementById("name").disabled = false;
-    document.getElementById("users").disabled = false;
+    document.getElementById("members").disabled = false;
     document.getElementById("owners").disabled = false;
     document.getElementById("edit").style.display = "none";
     document.getElementById("delete").style.display = "none";

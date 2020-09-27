@@ -145,6 +145,19 @@ def add_user_to_group(group_id: str, username: str) -> bool:
     return update.modified_count == 1
 
 
+def get_group(group_id: str) -> dict:
+    """Get a singular group, by id
+
+    Args:
+        group_id (str): A string representing the group id of the group to get
+
+    Returns:
+        Dictionary object that represents the group
+    """
+    col = db["groups"]
+    return col.find_one({"_id": ObjectId(group_id)})
+
+
 def groups_with_user(username: str) -> list:
     """Finds group(s) with user in it/them
 
@@ -391,9 +404,9 @@ def search_for_post(username: str, query: str, page: int) -> list:
     groups = [group["_id"] for group in groups_with_user(username)]
     return list(
         col.find({"$text": {"$search": query}, "group_id": {"$in": groups}})
-            .sort("date_created", -1)
-            .skip((page - 1) * 5)
-            .limit(5)
+        .sort("date_created", -1)
+        .skip((page - 1) * 5)
+        .limit(5)
     )
 
 

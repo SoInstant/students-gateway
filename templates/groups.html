@@ -22,7 +22,7 @@ content %}
   </form>
   {% if query %} &nbsp;
   <a
-    href="/admin"
+    href="/groups"
     class="mdl-button mdl-js-button mdl-button--raised mdl-js-ripple-effect mdl-button--accent"
   >
     Clear search
@@ -46,52 +46,33 @@ content %}
 <!-- Container -->
 <div class="row">
   <div id="groups">
+    {% if groups|length != 0 %}
     <table class="mdl-data-table mdl-js-data-table mdl-shadow--2dp">
       <thead>
         <tr>
           <th class="mdl-data-table__cell--non-numeric">Name</th>
           <th>Owners</th>
           <th>Members</th>
+          <!-- <th>Edit</th> -->
         </tr>
       </thead>
       <tbody>
-        <!-- {% for user, responses in post["responses"].items() %}
+        {% for group in groups %}
         <tr>
-          <td class="mdl-data-table__cell--non-numeric">{{user}}</td>
-          <td>
-            <i class="material-icons"
-              >{% if responses["viewed"] %}check{% else %}close{% endif %}</i
-            >
+          <td class="mdl-data-table__cell--non-numeric">
+            <a href="/groups/view?id={{group["_id"]}}">{{group["name"]}}</a>
           </td>
-          <td>
-            {% if responses["viewed"] %}<i class="material-icons"
-              >{% if responses["acknowledged"] %}check{% else %}close{% endif
-              %}</i
-            >{% endif %}
-          </td>
+          <td>{{group["owners"]|length}}</td>
+          <td>{{group["members"]|length}}</td>
+          <!-- <td><a><i class="material-icons">edit</i></a></td> -->
         </tr>
-        {% endfor %} -->
+
+        {% endfor %}
       </tbody>
     </table>
+    {% else %}
+    <p>No results!</p>
+    {% endif %}
   </div>
-  <!-- {% if posts|length != 0 %}
-    {% for post in posts %}
-    <a href="/posts/view?id={{post["_id"]}}" class="mdl-card mdl-shadow--2dp">
-      <div class="mdl-card__title">
-        <h2 class="mdl-card__title-text" style="font-weight: 500">
-          {{ post["title"] }}
-        </h2>
-      </div>
-      <div class="mdl-card__supporting-text">
-        {{ post["body"] }}
-        <p style="text-align: right">{{post["date_created"]}}</p>
-        <hr />
-        {{post["author_name"]}} <br />{{post["group_name"]}}
-      </div>
-    </a>
-    {% endfor %}
-  {% else %}
-  <p>No results! Try a broader search.</p>
-  {% endif %} -->
 </div>
 {% endblock %}
