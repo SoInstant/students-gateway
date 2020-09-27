@@ -12,6 +12,7 @@ from flask import (
     redirect,
     url_for,
     flash,
+    Response,
 )
 
 import helper
@@ -100,6 +101,22 @@ def posts_view():
     else:
         post["date_due"] = ""
     return render_template("posts_view.html", post=post, username=session["logged_in"])
+
+
+@app.route("/posts/download")
+def posts_download():
+    post_id = request.args.get("id")
+
+    if post_id == None:
+        return "Missing params"
+
+    df = helper.download_posts(post_id)
+
+    return Response(
+        df.to_csv(),
+        mimetype="text/csv",
+        headers={"Content-disposition": f"attachment; filename={post_id}.csv"},
+    )
 
 
 @app.route("/posts/edit", methods=["POST"])

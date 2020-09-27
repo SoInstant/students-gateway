@@ -121,19 +121,13 @@
         <i class="material-icons">delete</i>&nbsp;Delete
     </button>
 
-      <button
+      <a
         id="download"
+        href="/posts/download?id={{post["_id"]}}"
         class="mdl-button mdl-js-button mdl-button--raised mdl-js-ripple-effect mdl-button--accent"
       >
         <i class="material-icons">get_app</i>&nbsp;Download responses
-      </button>
-      <ul
-        class="mdl-menu mdl-menu--top-left mdl-js-menu mdl-js-ripple-effect"
-        data-mdl-for="download"
-      >
-        <li class="mdl-menu__item">Excel file (.xlsx)</li>
-        <li class="mdl-menu__item">Comma separated values (.csv)</li>
-      </ul>
+      </a>
       <br />
     </div>
     <!-- Responses -->
