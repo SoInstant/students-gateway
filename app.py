@@ -1,4 +1,5 @@
 # pylint: disable=missing-module-docstring,missing-function-docstring
+import os
 import datetime
 from time import time
 
@@ -18,7 +19,13 @@ from flask import (
 import helper
 
 app = Flask(__name__)
-app.secret_key = "asdfjbkl;oghfj"
+if os.path.isfile(".env"):  # for local testing
+    from dotenv import load_dotenv
+
+    load_dotenv(verbose=True)
+    app.secret_key = os.getenv("SECRET_KEY")
+else:
+    app.secret_key = os.environ["SECRET_KEY"]
 
 
 def check_authentication() -> bool:
@@ -165,7 +172,7 @@ def posts_create():
         if status[0]:
             flash("Successfully posted!", "info")
         else:
-            flash(f"An error occured: {status[1]}", "error")
+            flash(f"An error occurred: {status[1]}", "error")
         return redirect(url_for("admin"))
     return render_template("posts_create.html", username=session["logged_in"])
 
@@ -199,7 +206,7 @@ def groups_create():
         if helper.create_group(owners, request.form["name"], members):
             flash("Successfully created!", "info")
         else:
-            flash("An error occured!", "error")
+            flash("An error occurred!", "error")
         return redirect(url_for("groups_view"))
     return render_template("groups_create.html", you=session["logged_in"])
 
@@ -215,7 +222,7 @@ def groups_delete():
     if helper.delete_post(request.args.get("id")):
         flash("Successfully deleted!", "info")
     else:
-        flash("An error occured!", "error")
+        flash("An error occurred!", "error")
     return redirect(url_for("groups"))
 
 
