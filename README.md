@@ -23,7 +23,7 @@ Students' Gateway enables teachers to interact with students more conveniently o
 
 1. Clone the repository
 2. `pip install -r requirements.txt`
-3. Set your environment variables for `DB_USERNAME` and `DB_PASSWORD`
+3. Set your environment variables for `DB_USERNAME`, `DB_PASSWORD` and `SECRET_KEY`
 
 Then, run `app.py`
 
