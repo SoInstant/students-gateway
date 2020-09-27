@@ -1,6 +1,6 @@
 """Notifications functions for app.py
 
-This module provides notifications.
+This module provides notifications for the mobile app.
 """
 import json
 import requests
@@ -19,13 +19,7 @@ def notify(push_tokens: list, title: str, body: str):
     """
     request = requests.post(
         "https://exp.host/--/api/v2/push/send",
-        data=json.dumps(
-            {
-                "to": push_tokens,
-                "title": title,
-                "body": body,
-            }
-        ),
+        data=json.dumps({"to": push_tokens, "title": title, "body": body,}),
         headers={
             "host": "exp.host",
             "accept": "application/json",

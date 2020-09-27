@@ -1,6 +1,7 @@
 # pylint: disable=missing-module-docstring,missing-function-docstring
 import datetime
 from time import time
+import os.environ as env
 
 from bson.json_util import dumps
 from flask import (
@@ -18,7 +19,7 @@ from flask import (
 import helper
 
 app = Flask(__name__)
-app.secret_key = "asdfjbkl;oghfj"
+app.secret_key = env["SECRET_KEY"]
 
 
 def check_authentication() -> bool:
@@ -107,7 +108,7 @@ def posts_view():
 def posts_download():
     post_id = request.args.get("id")
 
-    if post_id == None:
+    if post_id is None:
         return "Missing params"
 
     df = helper.download_posts(post_id)
@@ -115,7 +116,7 @@ def posts_download():
     return Response(
         df.to_csv(),
         mimetype="text/csv",
-        headers={"Content-disposition": f"attachment; filename={post_id}.csv"},
+        headers={"Content-disposition": f"attachment; filename={helper.generate_salt()}.csv"},
     )
 
 
@@ -165,7 +166,7 @@ def posts_create():
         if status[0]:
             flash("Successfully posted!", "info")
         else:
-            flash(f"An error occured: {status[1]}", "error")
+            flash(f"An error occurred: {status[1]}", "error")
         return redirect(url_for("admin"))
     return render_template("posts_create.html", username=session["logged_in"])
 
@@ -179,7 +180,7 @@ def groups():
 @app.route("/groups/view")
 def groups_view():
     group_id = request.args.get("id")
-    if group_id == None:
+    if group_id is None:
         flash("Missing id", "error")
         return redirect(url_for("groups"))
     group = helper.get_group(group_id)
@@ -199,7 +200,7 @@ def groups_create():
         if helper.create_group(owners, request.form["name"], members):
             flash("Successfully created!", "info")
         else:
-            flash("An error occured!", "error")
+            flash("An error occurred!", "error")
         return redirect(url_for("groups_view"))
     return render_template("groups_create.html", you=session["logged_in"])
 
@@ -215,7 +216,7 @@ def groups_delete():
     if helper.delete_post(request.args.get("id")):
         flash("Successfully deleted!", "info")
     else:
-        flash("An error occured!", "error")
+        flash("An error occurred!", "error")
     return redirect(url_for("groups"))
 
 

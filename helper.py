@@ -130,18 +130,18 @@ def create_group(owner_id: list, name: str, members: list) -> bool:
     return insert.acknowledged
 
 
-def add_user_to_group(group_id: str, username: str) -> bool:
-    """Adds a user to a group
+def update_group(group_id: str, data: dict) -> bool:
+    """Updates a group
 
     Args:
         group_id: A string containing the group id of the group
-        username: A string containing the username of the user to be added
+        data: A dictionary containing the data to be updated, in the form of {field: value}
 
     Returns:
-        A boolean value indicating if the addition of the user to the group was successful
+        A boolean value indicating if the update was successful
     """
     col = db["groups"]
-    update = col.update_one({"_id": ObjectId(group_id)}, {"$push": {"members": username}})
+    update = col.update_one({"_id": ObjectId(group_id)}, data)
     return update.modified_count == 1
 
 
@@ -222,31 +222,32 @@ def get_post(post_id: str) -> dict:
     Returns:
         Dictionary object that represents the post
     """
-
     post = db["posts"].find_one({"_id": ObjectId(post_id)})
-    group = db["groups"].find_one({"_id": post["group_id"]})
+    if post:
+        group = db["groups"].find_one({"_id": post["group_id"]})
 
-    post["author_name"] = db["users"].find_one({"username": post["author_id"]})["name"]
-    # post["group_name"] = group["name"]
-    post["acknowledged"] = dict(
-        [(entry["username"], entry["response"]) for entry in post["acknowledged"]]
-    )
+        post["author_name"] = db["users"].find_one({"username": post["author_id"]})["name"]
+        # post["group_name"] = group["name"]
+        post["acknowledged"] = dict(
+            [(entry["username"], entry["response"]) for entry in post["acknowledged"]]
+        )
 
-    group_members = group["members"]
-    responses = {}
-    for member in group_members:
-        try:
-            response = post["acknowledged"][member]
-        except KeyError:
-            response = None
-        responses[member] = {
-            "viewed": member in post["viewed"],
-            "acknowledged": response,
-        }
-    post["responses"] = responses
+        group_members = group["members"]
+        responses = {}
+        for member in group_members:
+            try:
+                response = post["acknowledged"][member]
+            except KeyError:
+                response = None
+            responses[member] = {
+                "viewed": member in post["viewed"],
+                "acknowledged": response,
+            }
+        post["responses"] = responses
 
-    del post["author_id"], post["viewed"], post["acknowledged"]  # , post["group_id"]
-    return post
+        del post["author_id"], post["viewed"], post["acknowledged"]  # , post["group_id"]
+        return post
+    return {}
 
 
 def view_post(username: str, post_id: str) -> bool:
@@ -331,9 +332,19 @@ def create_post(username: str, data: dict) -> tuple:
         return False, f"Missing keys: {', '.join(absent_keys)}"
 
 
-def update_post():
-    """Updates a post made by an admin"""
-    # TODO
+def update_post(post_id: str, data: dict) -> bool:
+    """Updates a post made by an admin
+
+    Args:
+        post_id: A string representing the post to be updated
+        data: A dictionary containing the data to be updated, in the form of {field: value}
+
+    Returns:
+        A boolean value indicating if the update was successful
+    """
+    col = db["posts"]
+    update = col.update_one({"_id": ObjectId(post_id)}, data)
+    return update.modified_count == 1
 
 
 def delete_post(post_id: str) -> bool:
@@ -351,7 +362,29 @@ def delete_post(post_id: str) -> bool:
 
 
 def download_posts(post_id):
-    """Download the responses to a post"""
+    """Download the responses to a post
+    
+    Args:
+        post_id: A string representing the id of the post to be downloaded
+        
+    Returns:
+        A pandas.DataFrame object that contains the data of the post, with columns "username",
+        "viewed" and "response".
+
+        "viewed" contains either '1' or '0':
+            '1' indicates that the user has viewed the post
+            '0' indicates that the user has not viewed the post
+
+        "response" contains either '1', '0' or '':
+            '1' indicates that the user has responded with 'yes' to the post
+            '0' indicates that the user has responded with 'no' to the post
+            '' indicates that the user has not responded to the post
+
+        For example:
+                  username  viewed response
+            0  23ychij199g       1        1
+            1  23ylohy820c       1
+    """
     post = db["posts"].find_one({"_id": ObjectId(post_id)})
     group = db["groups"].find_one({"_id": post["group_id"]})
 
@@ -426,4 +459,5 @@ def set_expo_push_token(username: str, push_token: str) -> bool:
 
 
 if __name__ == "__main__":
-    print([group["_id"] for group in groups_with_user("23ychij199g")])
+    post_re = get_post("5f64d4b9ce2728e80c453488")
+    print(post_re)
