@@ -31,6 +31,29 @@ db = client["students-gateway"]
 
 
 # Auth functions
+def authenticate(username: str, password: str) -> tuple:
+    """Authenticates a user
+
+    Args:
+        username: A string that represents the username of the user to be authenticated
+        password: A string that represents the password of the user to be authenticated
+
+    Returns:
+        A tuple containing:
+            - a boolean value indicating if the authentication attempt succeeded
+            - a string representing the user type. If the authentication attempt failed,
+                 the user type will be an empty string.
+    """
+    col = db["users"]
+    results = col.find_one(
+        {"username": username}, {"password_hash": 1, "salt": 1, "user_type": 1}
+    )
+    if results:
+        if generate_hash(password, results["salt"]) == results["password_hash"]:
+            return True, results["user_type"]
+    return False, ""
+
+
 def generate_salt():
     """Generates a 16 byte salt
 
@@ -59,27 +82,7 @@ def generate_hash(password: str, salt: str) -> str:
     return hashlib.sha256(string.encode()).hexdigest()
 
 
-def authenticate(username: str, password: str) -> tuple:
-    """Authenticates a user
-
-    Args:
-        username: A string that represents the username of the user to be authenticated
-        password: A string that represents the password of the user to be authenticated
-
-    Returns:
-        A tuple containing:
-            - a boolean value indicating if the authentication attempt succeeded
-            - a string representing the user type. If the authentication attempt failed,
-                 the user type will be an empty string.
-    """
-    col = db["users"]
-    results = col.find_one({"username": username}, {"password_hash": 1, "salt": 1, "user_type": 1})
-    if results:
-        if generate_hash(password, results["salt"]) == results["password_hash"]:
-            return True, results["user_type"]
-    return False, ""
-
-
+# User functions
 def create_user(username: str, name: str, password: str, user_type: str) -> bool:
     """Creates a user in the database
 
@@ -114,6 +117,7 @@ def create_user(username: str, name: str, password: str, user_type: str) -> bool
     return insert.acknowledged
 
 
+# Group functions
 def create_group(owner_id: list, name: str, members: list) -> bool:
     """Creates a group in the database
 
@@ -128,21 +132,6 @@ def create_group(owner_id: list, name: str, members: list) -> bool:
     col = db["groups"]
     insert = col.insert_one({"name": name, "owners": owner_id, "members": members})
     return insert.acknowledged
-
-
-def update_group(group_id: str, data: dict) -> bool:
-    """Updates a group
-
-    Args:
-        group_id: A string containing the group id of the group
-        data: A dictionary containing the data to be updated, in the form of {field: value}
-
-    Returns:
-        A boolean value indicating if the update was successful
-    """
-    col = db["groups"]
-    update = col.update_one({"_id": ObjectId(group_id)}, data)
-    return update.modified_count == 1
 
 
 def get_group(group_id: str) -> dict:
@@ -167,13 +156,113 @@ def groups_with_user(username: str) -> list:
     Returns:
         A list containing information of groups that user is in
     """
-    groups = list(db["groups"].find({"$or": [{"owners": username}, {"members": username}]}))
+    groups = list(
+        db["groups"].find({"$or": [{"owners": username}, {"members": username}]})
+    )
     for group in groups:
         group["_id"] = ObjectId(group["_id"])
     return groups
 
 
+def update_group(group_id: str, data: dict) -> bool:
+    """Updates a group
+
+    Args:
+        group_id: A string containing the group id of the group
+        data: A dictionary containing the data to be updated, in the form of {field: value}
+
+    Returns:
+        A boolean value indicating if the update was successful
+    """
+    col = db["groups"]
+    update = col.update_one({"_id": ObjectId(group_id)}, data)
+    return update.modified_count == 1
+
+
+def delete_group(group_id: str) -> bool:
+    """Deletes a group
+
+    Args:
+        group_id: A string representing the id of the group to be deleted
+
+    Returns:
+        A boolean value indicating if the deletion was successful
+    """
+    col = db["groups"]
+    deletion = col.delete_one({"_id": ObjectId(group_id)})
+    return deletion.deleted_count == 1
+
+
+def search_for_group(username: str, query: str, suggestion=False) -> list:
+    """Makes suggestions based on query string
+
+    Args:
+        username: A string representing the username of user conducting search
+        query: A string representing the query string
+        suggestion: A boolean value that indicates whether to provide data in form conducive
+            for jquery's autocomplete. Defaults to False
+
+    Returns:
+        A list containing dictionaries of suggestions in the form of
+        {'label' : group_name, 'value': group_id}
+    """
+    col = db["groups"]
+    groups = col.find(
+        {"$text": {"$search": query}, "owners": username}, {"_id": 1, "name": 1}
+    )
+    if suggestion:
+        return [
+            {"label": group["name"], "value": str(group["_id"])} for group in groups
+        ]
+    return groups
+
+
 # Post functions
+
+
+def create_post(username: str, data: dict) -> tuple:
+    """Creates a post
+
+    Args:
+        username (str): username of user making the post
+        data (dict): post information in the form of {field:value}.
+            Compulsory fields: title (str), body (str), group_id (str), location (str or None),
+                requires_acknowledgement (boolean), date_due (integer)
+
+    Returns:
+        A tuple containing:
+            a boolean value indicating if the post creation was successful;
+            a string containing a message giving details on the creation
+    """
+    compulsory_keys = {
+        "title",
+        "body",
+        "group_id",
+        "location",
+        "requires_acknowledgement",
+        "date_due",
+    }
+    if compulsory_keys.issubset(set(data.keys())):
+        group_exists = len(list(db["groups"].find({"_id": ObjectId(data["group_id"])})))
+        if group_exists:
+            date = round(time())
+            data["date_created"] = int(date)
+            data["author_id"] = username
+            data["group_id"] = ObjectId(data["group_id"])
+            data["viewed"] = []
+            data["acknowledged"] = []
+            try:
+                insert = db["posts"].insert_one(data)
+                return insert.acknowledged, "Post created successfully"
+            except pymongo.errors.WriteError:
+                return False, "Post was not created successfully"
+        else:
+            return False, "group_id is invalid"
+    else:
+        absent_keys = [key for key in compulsory_keys if key not in data.keys()]
+        return False, f"Missing keys: {', '.join(absent_keys)}"
+
+
 def get_posts(username: str, page: int, todo: int) -> list:
     """Gets the posts of a user, by page
 
@@ -227,11 +316,16 @@ def get_post(post_id: str) -> dict:
     if post:
         group = db["groups"].find_one({"_id": post["group_id"]})
 
-        post["author_name"] = db["users"].find_one({"username": post["author_id"]})["name"]
+        post["author_name"] = db["users"].find_one({"username": post["author_id"]})[
+            "name"
+        ]
         post["group_name"] = group["name"]
         if post["requires_acknowledgement"]:
             post["acknowledged"] = dict(
-                [(entry["username"], entry["response"]) for entry in post["acknowledged"]]
+                [
+                    (entry["username"], entry["response"])
+                    for entry in post["acknowledged"]
+                ]
             )
 
         group_members = group["members"]
@@ -270,7 +364,9 @@ def view_post(username: str, post_id: str) -> bool:
         A boolean value indicating if setting the post to viewed was successful
     """
     col = db["posts"]
-    update = col.update_one({"_id": ObjectId(post_id)}, {"$addToSet": {"viewed": username}})
+    update = col.update_one(
+        {"_id": ObjectId(post_id)}, {"$addToSet": {"viewed": username}}
+    )
     if update.modified_count:
         requires_acknowledgedment = col.find_one({"_id": ObjectId(post_id)})[
             "requires_acknowledgement"
@@ -278,7 +374,11 @@ def view_post(username: str, post_id: str) -> bool:
         if requires_acknowledgedment:
             col.update_one(
                 {"_id": ObjectId(post_id)},
-                {"$addToSet": {"acknowledged": {"username": username, "response": None}}},
+                {
+                    "$addToSet": {
+                        "acknowledged": {"username": username, "response": None}
+                    }
+                },
             )
     return update.modified_count == 1
 
@@ -300,49 +400,6 @@ def respond_post(username: str, post_id: str, response: bool):
         {"$set": {"acknowledged.$.response": response}},
     )
     return update.modified_count == 1
-
-
-def create_post(username: str, data: dict) -> tuple:
-    """Creates a post
-
-    Args:
-        username (str): username of user making the post
-        data (dict): post information in the form of {field:value}.
-            Compulsory fields: title (str), body (str), group_id (str), location (str or None),
-                requires_acknowledgement (boolean), date_due (integer)
-
-    Returns:
-        A tuple containing:
-            a boolean value indicating if the post creation was successful;
-            a string containing a message giving details on the creation
-    """
-    compulsory_keys = {
-        "title",
-        "body",
-        "group_id",
-        "location",
-        "requires_acknowledgement",
-        "date_due",
-    }
-    if compulsory_keys.issubset(set(data.keys())):
-        group_exists = len(list(db["groups"].find({"_id": ObjectId(data["group_id"])})))
-        if group_exists:
-            date = round(time())
-            data["date_created"] = int(date)
-            data["author_id"] = username
-            data["group_id"] = ObjectId(data["group_id"])
-            data["viewed"] = []
-            data["acknowledged"] = []
-            try:
-                insert = db["posts"].insert_one(data)
-                return insert.acknowledged, "Post created successfully"
-            except pymongo.errors.WriteError:
-                return False, "Post was not created successfully"
-        else:
-            return False, "group_id is invalid"
-    else:
-        absent_keys = [key for key in compulsory_keys if key not in data.keys()]
-        return False, f"Missing keys: {', '.join(absent_keys)}"
 
 
 def update_post(post_id: str, data: dict) -> bool:
@@ -411,28 +468,10 @@ def download_post(post_id):
                 else:
                     i.append(int(response["acknowledged"]))
             data.append(i)
-        return pandas.DataFrame.from_records(data, columns=["username", "viewed", "response"])
+        return pandas.DataFrame.from_records(
+            data, columns=["username", "viewed", "response"]
+        )
     return pandas.DataFrame()
-
-
-def search_for_group(username: str, query: str, suggestion=False) -> list:
-    """Makes suggestions based on query string
-
-    Args:
-        username: A string representing the username of user conducting search
-        query: A string representing the query string
-        suggestion: A boolean value that indicates whether to provide data in form conducive
-            for jquery's autocomplete. Defaults to False
-
-    Returns:
-        A list containing dictionaries of suggestions in the form of
-        {'label' : group_name, 'value': group_id}
-    """
-    col = db["groups"]
-    groups = col.find({"$text": {"$search": query}, "owners": username}, {"_id": 1, "name": 1})
-    if suggestion:
-        return [{"label": group["name"], "value": str(group["_id"])} for group in groups]
-    return groups
 
 
 def search_for_post(username: str, query: str, page: int) -> list:
@@ -456,6 +495,7 @@ def search_for_post(username: str, query: str, page: int) -> list:
     )
 
 
+# Misc functions
 def set_expo_push_token(username: str, push_token: str) -> bool:
     """Sets Expo's push notifications token for given user
 
@@ -467,7 +507,9 @@ def set_expo_push_token(username: str, push_token: str) -> bool:
        Whether set is successful
     """
     col = db["users"]
-    update = col.update_one({"username": username}, {"$set": {"push_token": push_token}})
+    update = col.update_one(
+        {"username": username}, {"$set": {"push_token": push_token}}
+    )
     return update.modified_count == 1
 
 
