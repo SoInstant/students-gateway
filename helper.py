@@ -273,10 +273,10 @@ def get_posts(username: str, page: int, todo: int) -> list:
         query = {
             "group_id": {"$in": groups},
             "$or": [
-                {"viewed": {"$nin": ["23ylohy820c"]}},  # Post that are not viewed
+                {"viewed": {"$nin": [username]}},  # Post that are not viewed
                 {
                     "$and": [  # Posts that have been viewed but not responded to
-                        {"viewed": {"$in": ["23ylohy820c"]}},
+                        {"viewed": {"$in": [username]}},
                         {"acknowledged.response": None},
                     ]
                 },
