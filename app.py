@@ -230,8 +230,8 @@ def groups_create():
             flash("You were logged out, try again!", "error")
             return redirect(url_for("login"))
 
-        owners = [owner.strip() for owner in request.form["owners"].splitlines()]
-        members = [member.strip() for member in request.form["members"].splitlines()]
+        owners = [owner.strip() for owner in request.form["owners"].splitlines() if owner]
+        members = [member.strip() for member in request.form["members"].splitlines() if member]
 
         if helper.create_group(owners, request.form["name"], members):
             flash("Successfully created!", "info")
@@ -252,8 +252,8 @@ def groups_edit():
         flash("Missing parameters", "error")
         return redirect(url_for("groups"))
 
-    owners = [owner.strip() for owner in request.form["owners"].splitlines()]
-    members = [member.strip() for member in request.form["members"].splitlines()]
+    owners = [owner.strip() for owner in request.form["owners"].splitlines() if owner]
+    members = [member.strip() for member in request.form["members"].splitlines() if member]
 
     status = helper.update_group(
         group_id, {"name": request.form["name"], "owners": owners, "members": members}
